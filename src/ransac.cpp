@@ -1,5 +1,12 @@
+/* Standard Libraries*/
+#include <iostream>
+#include <fstream>
+
+/* ROS */
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
+
+/* User */
 #include "ransac_project/BorderLines.h"
 #include "ransac_project/Bisectrix.h"
 #include "ransac_classes.hpp"
@@ -7,10 +14,7 @@
 #include "ransac_lib.hpp"
 #include "topics.hpp"
 
-#include <iostream>
-#include <fstream>
 
-// ofstream outFile;
 
 void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 {
@@ -50,7 +54,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 				listener.waitForTransform(BASE_LINK_FRAME_ID, LASER_FRAME_ID, ros::Time(), ros::Duration(1.0));
     			listener.transformPoint(BASE_LINK_FRAME_ID, laser_point, vero_point);
 
-    			if(laser_point.point.x < (winLength * dataWidth) && 
+    			if(laser_point.point.x < (winLength * dataWidth) &&
 					abs(laser_point.point.y) < (winWidth * dataWidth)){
 					if(laser_point.point.y > 0){
 						if(winAngle){
@@ -74,14 +78,18 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 					}
 				}
 
-    			// ROS_INFO("hokuyo: (%.2f, %.2f. %.2f) -----> vero: (%.2f, %.2f, %.2f) at time %.2f", laser_point.point.x, laser_point.point.y, laser_point.point.z,vero_point.point.x, vero_point.point.y, vero_point.point.z, vero_point.header.stamp.toSec());
+    	  ROS_INFO("hokuyo: (%.2f, %.2f. %.2f) -----> vero: (%.2f, %.2f, %.2f) at time %.2f",
+            laser_point.point.x, laser_point.point.y, laser_point.point.z,
+            vero_point.point.x, vero_point.point.y, vero_point.point.z,
+            vero_point.header.stamp.toSec());
 			}
 			catch(TransformException& ex){
-				ROS_ERROR("Received an exception trying to transform a point from \"hokuyo\" to \"base_link\": %s", ex.what());
+				ROS_ERROR("Received an exception trying to transform a point from \"hokuyo\" to \"base_link\": %s",
+            ex.what());
 			}
-		}	
+		}
 	}
-	
+
 	for(int j = 0; j < x_left.size(); j ++){
 		x_l.push_back(x_left[j]);
 		y_l.push_back(y_left[j]);
@@ -101,7 +109,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 		dR[i][0] = x_right[i];
 		dR[i][1] = y_right[i];
 	}
-	
+
 	dL = (float **) malloc(x_left.size() * sizeof(float *));
 	if(dR == NULL) { perror("out of memory\n"); exit(0); }
 	for(i = 0; i < x_left.size(); i++)
@@ -114,7 +122,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 
 	ret = ransac_2Dline(dR, x_right.size(), (x_right.size()/2)-1, threshold, modelR, &inliersR, verbose);
 	ret += ransac_2Dline(dL, x_left.size(), (x_left.size()/2)-1, threshold, modelL, &inliersL, verbose);
-	
+
 	for(i = 0; i < x_right.size(); i++)
 		free(dR[i]);
 	free(dR);
@@ -122,17 +130,17 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 	for(i = 0; i < x_left.size(); i++)
 		free(dL[i]);
 	free(dL);
-	
+
 	if(ret == 0){
-	
+
 		lineR[0] = modelR[0];
 		lineR[1] = modelR[1];
 		lineR[2] = modelR[2];
-		
+
 		lineL[0] = modelL[0];
 		lineL[1] = modelL[1];
 		lineL[2] = modelL[2];
-		
+
 		vector<double> biModel = bisectrixLine(lineL, lineR);
 		vector<float> bi2msg;
 		ransac_project::Bisectrix biMsg;
@@ -140,7 +148,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 		for(int j = 0; j < biModel.size(); j ++){
 			bi2msg.push_back(biModel[j]);
 		}
-	
+
 		biMsg.bisectrix = bi2msg;
 		pub_bisec->publish(biMsg);
 
@@ -164,21 +172,23 @@ int main(int argc,char **argv){
 
 	ros::init(argc, argv, "ransac");
 	ros::NodeHandle ransac_node;
-	NodeHandle node("~");
+  ros::NodeHandle node("~");
 
 	bool wp = false, verbose = false;
 	double threshold, dataWidth, winWidth, winLength;
-	
+
 	/*parametros fundamentais para a execução do software*/
-	if(!node.getParam("threshold", threshold) || !node.getParam("dataWidth", dataWidth) || 
-	   !node.getParam("winWidth", winWidth) || !node.getParam("winLength", winLength)){
+	if(!node.getParam("threshold", threshold) ||
+     !node.getParam("dataWidth", dataWidth) ||
+	   !node.getParam("winWidth", winWidth)   ||
+     !node.getParam("winLength", winLength)){
 		ROS_ERROR("parameters not specified");
 		exit(0);
 	}
-	
+
 	ros::Publisher ransac_pub = ransac_node.advertise<ransac_project::BorderLines>(RANSAC_LINES_TOPIC, 1);
-	
-	ros::Publisher bisec_pub = ransac_node.advertise<ransac_project::Bisectrix>(RANSAC_BISECTRIX_TOPIC, 1); 
+
+	ros::Publisher bisec_pub = ransac_node.advertise<ransac_project::Bisectrix>(RANSAC_BISECTRIX_TOPIC, 1);
 
 	laser* ls = laser::uniqueInst(ransac_pub, bisec_pub, wp, ransac_node);
 
@@ -186,7 +196,7 @@ int main(int argc,char **argv){
 	ls->setdataWidth(dataWidth);
 	ls->setwinWidth(winWidth);
 	ls->setwinLength(winLength);
-	
+
 	if(node.getParam("verbose", verbose))
 		ls->setVerbose(verbose);
 
@@ -194,11 +204,12 @@ int main(int argc,char **argv){
 	// "scan" - ros aquired dara (hokuyo)
 	ros::Subscriber laser_sub = ransac_node.subscribe(VERO_LASER_SCAN_TOPIC, 1, &laser::laserCallback, ls);
 
+
+  // ofstream outFile;
 	// outFile.open("/home/sobral/angle.txt");
 
 	ros::spin();
 
 	// outFile.close();
-	
 	return 0;
 }
