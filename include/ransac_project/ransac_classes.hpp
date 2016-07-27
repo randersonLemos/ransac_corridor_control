@@ -32,7 +32,7 @@ class laser
 		WatchDog* watchdog;
 		float threshold, p_inliers, dataWidth, winWidth, winLength;
 		bool verbose;
-		float winAngle;			// angulo utilizado para a divisao da janela
+		float winAngle;		   	// angulo utilizado para a divisao da janela
 													// direita/esquerda na ultima iteracao
 		float last_trajAngle;	// angulo da ultima trajetoria estimada
 		float last_winAngle;	

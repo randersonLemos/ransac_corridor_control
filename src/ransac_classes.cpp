@@ -21,7 +21,7 @@ laser::laser(Publisher p, Publisher p2, bool wp, NodeHandle node)
 	else{
 		window = NULL;
 	}
-	
+
 }
 
 laser* laser::uniqueInst(Publisher p, Publisher p2, bool wp, NodeHandle node)
@@ -29,7 +29,7 @@ laser* laser::uniqueInst(Publisher p, Publisher p2, bool wp, NodeHandle node)
 	if(instance == 0){
 		instance = new laser(p, p2, wp, node);
 	}
-	
+
 	return instance;
 }
 
@@ -146,7 +146,7 @@ ransacControl::ransacControl(Publisher p, bool wp, NodeHandle node)
 	*pub = p;
 	watchdog = new WatchDog_ransac(node);
 	watchdog->StartTimer(DURATION);
-	
+
 	if(wp){
 		window = new CDisplayWindowPlots("RANSAC", 800, 600);
 		window->axis(-5, 5, -3, 13, true);
@@ -154,7 +154,7 @@ ransacControl::ransacControl(Publisher p, bool wp, NodeHandle node)
 	else{
 		window = NULL;
 	}
-	
+
 }
 
 ransacControl* ransacControl::uniqueInst(Publisher p, bool wp, NodeHandle node)
@@ -162,7 +162,7 @@ ransacControl* ransacControl::uniqueInst(Publisher p, bool wp, NodeHandle node)
 	if(instance == 0){
 		instance = new ransacControl(p, wp, node);
 	}
-	
+
 	return instance;
 }
 
@@ -171,10 +171,10 @@ ransacControl* ransacControl::uniqueInst(Publisher p, bool wp, NodeHandle node)
 bool WatchDog_ransac::StartTimer (double duration)
 {
 	if (this->gethasTimer()) this->gettimer().Timer::~Timer();
-	
+
 	this->settimer(this->getn()->createTimer(Duration(duration), WatchDogHolder_ransac(this)));
 	this->sethasTimer(true);
-	
+
 	return true;
 }
 
@@ -182,39 +182,39 @@ bool WatchDog_ransac::StartTimer (double duration)
 int WatchDog_ransac::KillApplication()
 {
 	if(this->getisAlive()){
-		
+
 		this->setisAlive(false);
 		return 1;
 	}
-	
+
 	NodeHandle n;
 	Publisher p2;
 	ransacControl *rc2 = ransacControl::uniqueInst(p2, false, n);
-	
+
 	if(rc2->getwhich_car().compare("vero") == 0){
-	
+
 		ransac_project::CarCommand msg_vero;
-	
+
 		msg_vero.speedLeft = 0;
 		msg_vero.speedRight = 0;
 		msg_vero.steerAngle = 0;
-	
+
 		rc2->publica(msg_vero);
 	}
-	
+
 	else{
 		geometry_msgs::Twist msg_pioneer;
-	
+
 		msg_pioneer.linear.x = 0;
 		msg_pioneer.linear.y = 0;
 		msg_pioneer.linear.z = 0;
 		msg_pioneer.angular.x = 0;
 		msg_pioneer.angular.y = 0;
 		msg_pioneer.angular.z = 0;
-		
+
 		rc2->publica(msg_pioneer);
 	}
-	
+
 	sleep(1);
 	exit(-1);
 }

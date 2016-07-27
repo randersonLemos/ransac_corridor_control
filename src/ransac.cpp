@@ -4,20 +4,22 @@
 
 /* ROS */
 #include "ros/ros.h"
+
+/* ROS msgs */
 #include "sensor_msgs/LaserScan.h"
 
 /* User */
-#include "ransac_project/BorderLines.h"
-#include "ransac_project/Bisectrix.h"
 #include "ransac_classes.hpp"
 #include "ransac_2Dline.hpp"
 #include "ransac_lib.hpp"
 #include "topics.hpp"
 
+/* User msgs */
+#include "ransac_project/BorderLines.h"
+#include "ransac_project/Bisectrix.h"
 
 
-void laser::laserCallback(const sensor_msgs::LaserScan& msg)
-{
+void laser::laserCallback(const sensor_msgs::LaserScan& msg){
 	watchdog->IsAlive();
 
 	vector<float> x_left, x_right, y_left, y_right;
@@ -78,10 +80,10 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg)
 					}
 				}
 
-    	  ROS_INFO("hokuyo: (%.2f, %.2f. %.2f) -----> vero: (%.2f, %.2f, %.2f) at time %.2f",
-            laser_point.point.x, laser_point.point.y, laser_point.point.z,
-            vero_point.point.x, vero_point.point.y, vero_point.point.z,
-            vero_point.header.stamp.toSec());
+    	  //ROS_INFO("hokuyo: (%.2f, %.2f. %.2f) -----> vero: (%.2f, %.2f, %.2f) at time %.2f",
+        //    laser_point.point.x, laser_point.point.y, laser_point.point.z,
+        //    vero_point.point.x, vero_point.point.y, vero_point.point.z,
+        //    vero_point.header.stamp.toSec());
 			}
 			catch(TransformException& ex){
 				ROS_ERROR("Received an exception trying to transform a point from \"hokuyo\" to \"base_link\": %s",
