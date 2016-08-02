@@ -237,7 +237,7 @@ void estimateModel_line(float *l, float **P, int n) {
 	// the smallest singular value of Q
 	// measures the residual fitting error
 	// residue = Sigma(2, 2);
-	//residue = W[1];
+	// residue = W[1];
 	
 	for(i = 0; i < n; i++)
 	{

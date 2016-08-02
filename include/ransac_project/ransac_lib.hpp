@@ -57,14 +57,11 @@ vector<double> bisectrixLine(vector<float> l1, vector<float> l2);
  *    format : string com o formato da linha a ser plotada
  *    name	 : string com o nome da linha a ser plotada
 */
-/*void plotLine(mrpt::gui::CDisplayWindowPlots &win,
-                vector<float> line, 
-                string format, 
-                string name);*/
 void plotLine(mrpt::gui::CDisplayWindowPlots &win,
                 const vector<float> &line, 
                 const string &lineFormat, 
                 const string &plotName);
+
 
 /* plotPoints
  *    plota pontos 
@@ -76,16 +73,12 @@ void plotLine(mrpt::gui::CDisplayWindowPlots &win,
  *    format : string com o formato dos pontos  a ser plotada
  *    name	 : string com o nome dos pontos a ser plotada
 */
-/*void plotPoints(mrpt::gui::CDisplayWindowPlots &win, 
-                  vector<float> x,
-                  vector<float> y, 
-                  string lineFormat, 
-                  string plotName);*/
 void plotPoints(mrpt::gui::CDisplayWindowPlots &win, 
                   const vector<float> &x,
                   const vector<float> &y, 
                   const string &lineFormat, 
                   const string &plotName);
+
 
 
 /*
