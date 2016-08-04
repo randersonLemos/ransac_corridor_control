@@ -1,8 +1,8 @@
 #include "ransac_lib.hpp"
 
 
-vector<double> bisectrixLine(vector<float> l1, vector<float> l2)
-{
+vector<double> bisectrixLine(vector<float> l1, vector<float> l2){
+
 	vector<double> bisectrix(3), V1(2), V2(2), VY(2);
 	double a1, b1, c1, a2, b2, c2;
 	double a1k, b1k, c1k, a2k, b2k, c2k, k1, k2;
@@ -75,40 +75,13 @@ vector<double> bisectrixLine(vector<float> l1, vector<float> l2)
 	}
 
 	return bisectrix;
-}
+} // bisectrixLine
 
 
-/*void plotLine(mrpt::gui::CDisplayWindowPlots &win,
-                vector<float> line,
-                string format,
-                string name){
-
-  //vector<double> lx(2), ly(2);
-  //lx[0]=line[0];
-  //lx[1]=line[1];
-  //ly[0]=line[2];
-  //ly[1]=line[3];
-
-	vector<double> lx(21), ly(21);
-	for(int i=0; i<21; i++)
-	{
-		lx[i] = i-10;
-		ly[i] = (-lx[i]*line[0] - line[2])/line[1];
-	}
-
-	win.plot(lx,ly,format,name);
-}*/
-void plotLine(mrpt::gui::CDisplayWindowPlots &win,
+void plotLine(CDisplayWindowPlots &win,
                 const vector<float> &line,
                 const string &lineFormat,
                 const string &plotName){
-
-  //vector<double> lx(2), ly(2);
-  //lx[0]=line[0];
-  //lx[1]=line[1];
-  //ly[0]=line[2];
-  //ly[1]=line[3];
-
 
 	vector<double> lx(21), ly(21);
 	for(int i=0; i<21; i++)	{
@@ -117,42 +90,14 @@ void plotLine(mrpt::gui::CDisplayWindowPlots &win,
 	}
 
 	win.plot(lx,ly,lineFormat,plotName);
-}
+} // plotLine
 
 
-/*void plotPoints(mrpt::gui::CDisplayWindowPlots &win,
-                  vector<float> x,
-                  vector<float> y,
-                  string lineFormat,
-                  string plotName){
-
-	vector<double> lx(x.size());
-  vector<double> ly(y.size());
-
-	for (unsigned int i=0; i<x.size();i++) {
-		lx[i]=x[i];
-		ly[i]=y[i];
-	}
-
-	win.plot(lx, ly, lineFormat, plotName);
-}*/
-void plotPoints(mrpt::gui::CDisplayWindowPlots &win,
+void plotPoints(CDisplayWindowPlots &win,
                   const vector<float> &x,
                   const vector<float> &y,
                   const string &lineFormat,
                   const string &plotName){
+
   win.plot(x, y, lineFormat, plotName);
-}
-
-
-/*
-void plotPoints(mrpt::gui::CDisplayWindowPlots &win,
-                  vector<float> x,
-                  vector<float> y,
-                  string format,
-                  string name){
-	win.plot(x,y,format,name);
-}
-*/
-
-
+} //plotPoints
