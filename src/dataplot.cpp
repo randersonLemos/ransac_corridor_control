@@ -1,10 +1,11 @@
 #include "ransac_lib.hpp"
 #include "topics.hpp"
 
-mrpt::gui::CDisplayWindowPlots* window;
+
+mrpt::gui::CDisplayWindowPlots *window;
+
 
 void linesCallback(const ransac_project::BorderLines& msg){
-	vector<float> lineR(4), lineL(4);
 
 	plotLine(*window, msg.line_left, "r-2", "ransac: left side");
 	plotLine(*window, msg.line_right, "b-2", "ransac: right side");
@@ -12,14 +13,15 @@ void linesCallback(const ransac_project::BorderLines& msg){
 	plotPoints(*window, msg.x_right, msg.y_right, "m.2","scan: right side");
 
   return;
-}
+} // linesCallback
 
 
 void bisecCallback(const ransac_project::Bisectrix& msg){
+
 	plotLine(*window, msg.bisectrix, "g-2","bisectrix");
 
   return;
-}
+} // bisecCallback
 
 
 int main(int argc, char** argv){

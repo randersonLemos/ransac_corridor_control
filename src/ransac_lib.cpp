@@ -90,6 +90,7 @@ void plotLine(CDisplayWindowPlots &win,
 	}
 
 	win.plot(lx,ly,lineFormat,plotName);
+  return;
 } // plotLine
 
 
@@ -100,4 +101,5 @@ void plotPoints(CDisplayWindowPlots &win,
                   const string &plotName){
 
   win.plot(x, y, lineFormat, plotName);
+  return;
 } //plotPoints
