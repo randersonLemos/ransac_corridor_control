@@ -1,3 +1,6 @@
+#ifndef RANSAC_LIB_H
+#define RANSAC_LIB_H
+
 /* Standard Libraries*/
 #include <math.h>
 #include <vector>
@@ -32,7 +35,7 @@ using namespace tf;
 using namespace mrpt::gui;
 
 #define PI 3.14159265
-#define DURATION 0.5
+#define DURATION 10 
 
 /* bisectrixLine
  *    Calcula a linha bissetriz entre duas linhas, cada uma delas
@@ -41,7 +44,7 @@ using namespace mrpt::gui;
  * Entradas
  *    l1 : vetor contendo os coeficientes da primeira linha (a1, b1, c1)
  *    l2 : vetor contendo os coeficientes da segunda linha (a2, b2, c2)
- *	
+ *g	
  * Saidas
  *    bisectrix	: vetor contendo os coeficientes que definem a linha bissetriz (ab, bb, cb)
 */
@@ -78,3 +81,4 @@ void plotPoints(CDisplayWindowPlots &win,
                   const vector<float> &y, 
                   const string &lineFormat, 
                   const string &plotName);
+#endif /* RANSAC_LIB_H */
