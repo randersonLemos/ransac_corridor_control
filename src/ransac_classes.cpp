@@ -55,24 +55,16 @@ void laser::setVerbose(const bool &x){
 
 ransacControl* ransacControl::instance = 0;
 
-ransacControl::ransacControl(const ros::Publisher &p, const bool &wp, const ros::NodeHandle &node){
+ransacControl::ransacControl(const ros::Publisher &p, const ros::NodeHandle &node){
     pub = new ros::Publisher();
     *pub = p;
-    watchdog = new WatchDog_ransac(node);
-    watchdog->StartTimer(DURATION);
-
-    if(wp){
-        window = new CDisplayWindowPlots("RANSAC", 800, 600);
-        window->axis(-5, 5, -3, 13, true);
-    }
-    else{
-        window = NULL;
-    }
+    //watchdog = new WatchDog_ransac(node);
+    //watchdog->StartTimer(DURATION);
 }
 
-ransacControl* ransacControl::uniqueInst(ros::Publisher p, bool wp, ros::NodeHandle node){
+ransacControl* ransacControl::uniqueInst(ros::Publisher p, ros::NodeHandle node){
     if(instance == 0){
-        instance = new ransacControl(p, wp, node);
+        instance = new ransacControl(p, node);
     }
 
     return instance;
@@ -166,7 +158,7 @@ int WatchDog_ransac::KillApplication(){
 
     ros::NodeHandle n;
     ros::Publisher p2;
-    ransacControl *rc2 = ransacControl::uniqueInst(p2, false, n);
+    ransacControl *rc2 = ransacControl::uniqueInst(p2, n);
 
     if(rc2->getwhich_car().compare("vero") == 0){
 

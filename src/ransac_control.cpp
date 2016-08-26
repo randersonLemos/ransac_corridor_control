@@ -30,7 +30,7 @@ void ctrlHandler(int x)
 {
     ros::NodeHandle n;
     ros::Publisher p2;
-    ransacControl *rc2 = ransacControl::uniqueInst(p2, false, n);
+    ransacControl *rc2 = ransacControl::uniqueInst(p2, n);
 /*
     if(rc2->getwhich_car().compare("vero") == 0){
 
@@ -67,7 +67,7 @@ void ransacControl::odometryCallback(const nav_msgs::Odometry &Odom_msg){
 
 void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
 {
-    watchdog->IsAlive();
+    //watchdog->IsAlive();
 
     double rudder;
     std::vector<double> bisectrix(4);
@@ -124,7 +124,6 @@ int main(int argc, char **argv){
     ransacControl* rc;
 
     /* Essential parameters to perform the vero/pioneer control */
-    bool wp = false;
     int ramp_time;
     double v_linear, KPT, KIT, KRT, KVT, lenght = 0;
     std::string which_car;
@@ -141,8 +140,8 @@ int main(int argc, char **argv){
             ROS_ERROR("parameters not specified");
             exit(0);
         }
-        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(VERO_COMMAND_TOPIC, 1), wp, n);
-        //rc = ransacControl::uniqueInst(n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1), wp, n);
+        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(VERO_COMMAND_TOPIC, 1), n);
+        //rc = ransacControl::uniqueInst(n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1), n);
     }
     else if(which_car.compare("pioneer") == 0){
         if(!nh.getParam("v_linear", v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
@@ -150,7 +149,7 @@ int main(int argc, char **argv){
             ROS_ERROR("parameters not specified");
             exit(0);
         }
-        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1), wp, n);
+        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1), n);
     }
     else{
         ROS_ERROR("must specify vero or pioneer");

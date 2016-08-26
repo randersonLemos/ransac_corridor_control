@@ -52,16 +52,15 @@ class ransacControl{
 private:
     static ransacControl* instance;
     ros::Publisher* pub;
-    CDisplayWindowPlots *window;
     WatchDog_ransac* watchdog;
     double angularVel, dt, max_v_linear, v_linear, lenght, KPT, KIT, KRT, KVT;
     std::string which_car;
     ros::Time start_time;
     ros::Duration ramp_time;
 protected:
-    ransacControl(const ros::Publisher &p, const bool &wp, const ros::NodeHandle &node);
+    ransacControl(const ros::Publisher &p, const ros::NodeHandle &node);
 public:
-    static ransacControl* uniqueInst(ros::Publisher p, bool wp, ros::NodeHandle node);
+    static ransacControl* uniqueInst(ros::Publisher p, ros::NodeHandle node);
     void ransacCallback(const ransac_project::Bisectrix &biMsg);
     void odometryCallback(const nav_msgs::Odometry &Odom_msg);
 
@@ -76,7 +75,6 @@ public:
 
     double getdt();
     void setdt(const double &x);
-
 
     void setKPT(const double &x);
     void setKIT(const double &x);
