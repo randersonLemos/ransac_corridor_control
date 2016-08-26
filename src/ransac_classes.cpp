@@ -55,80 +55,8 @@ void laser::setVerbose(const bool &x){
 
 ransacControl* ransacControl::instance = 0;
 
-double ransacControl::getangularVel(){
-    return angularVel;
-}
-
-void ransacControl::setangularVel(double x){
-    angularVel = x;
-    return;
-}
-
-
-double ransacControl::getdt()
-{
-    return dt;
-}
-
-
-void ransacControl::setdt(double x){
-    dt = x;
-    return;
-}
-
-
-void ransacControl::setv_linear(double vlin, int rtime){
-    start_time = ros::Time::now();
-    ramp_time = ros::Duration(rtime);
-    max_v_linear = vlin;
-    v_linear = 0;
-    return;
-}
-
-void ransacControl::setKPT(double x){
-    KPT = x;
-    return;
-}
-
-void ransacControl::setKIT(double x){
-    KIT = x;
-    return;
-}
-
-void ransacControl::setKRT(double x){
-    KRT = x;
-    return;
-}
-
-void ransacControl::setKVT(double x){
-    KVT = x;
-    return;
-}
-
-void ransacControl::setlenght(double x){
-    lenght = x;
-    return;
-}
-
-void ransacControl::setwhich_car(string x){
-    which_car = x;
-    return;
-}
-
-string ransacControl::getwhich_car(){
-    return which_car;
-}
-
-void ransacControl::publica(const ransac_project::CarCommand msg){
-    pub->publish(msg);
-}
-
-void ransacControl::publica(const geometry_msgs::Twist msg){
-    pub->publish(msg);
-}
-
-ransacControl::ransacControl(Publisher p, bool wp, NodeHandle node){
-    pub = new Publisher();
+ransacControl::ransacControl(const ros::Publisher &p, const bool &wp, const ros::NodeHandle &node){
+    pub = new ros::Publisher();
     *pub = p;
     watchdog = new WatchDog_ransac(node);
     watchdog->StartTimer(DURATION);
@@ -142,12 +70,80 @@ ransacControl::ransacControl(Publisher p, bool wp, NodeHandle node){
     }
 }
 
-ransacControl* ransacControl::uniqueInst(Publisher p, bool wp, NodeHandle node){
+ransacControl* ransacControl::uniqueInst(ros::Publisher p, bool wp, ros::NodeHandle node){
     if(instance == 0){
         instance = new ransacControl(p, wp, node);
     }
 
     return instance;
+}
+
+void ransacControl::publica(const ransac_project::CarCommand &msg){
+    pub->publish(msg);
+}
+
+void ransacControl::publica(const geometry_msgs::Twist &msg){
+    pub->publish(msg);
+}
+
+void ransacControl::setv_linear(const double &vlin, const int &rtime){
+    start_time = ros::Time::now();
+    ramp_time = ros::Duration(rtime);
+    max_v_linear = vlin;
+    v_linear = 0;
+    return;
+}
+
+double ransacControl::getangularVel(){
+    return angularVel;
+}
+
+void ransacControl::setangularVel(const double &x){
+    angularVel = x;
+    return;
+}
+
+double ransacControl::getdt(){
+    return dt;
+}
+
+void ransacControl::setdt(const double &x){
+    dt = x;
+    return;
+}
+
+void ransacControl::setKPT(const double &x){
+    KPT = x;
+    return;
+}
+
+void ransacControl::setKIT(const double &x){
+    KIT = x;
+    return;
+}
+
+void ransacControl::setKRT(const double &x){
+    KRT = x;
+    return;
+}
+
+void ransacControl::setKVT(const double &x){
+    KVT = x;
+    return;
+}
+
+void ransacControl::setlenght(const double &x){
+    lenght = x;
+    return;
+}
+
+std::string ransacControl::getwhich_car(){
+    return which_car;
+}
+
+void ransacControl::setwhich_car(const std::string &x){
+    which_car = x;
+    return;
 }
 
 /*****************************************************************************/
@@ -156,7 +152,7 @@ bool WatchDog_ransac::StartTimer (double duration){
     if (this->gethasTimer()){
         this->gettimer().Timer::~Timer();
     }
-    this->settimer(this->getn()->createTimer(Duration(duration), WatchDogHolder_ransac(this)));
+    this->settimer(this->getn()->createTimer(ros::Duration(duration), WatchDogHolder_ransac(this)));
     this->sethasTimer(true);
     return true;
 }
@@ -168,8 +164,8 @@ int WatchDog_ransac::KillApplication(){
         return 1;
     }
 
-    NodeHandle n;
-    Publisher p2;
+    ros::NodeHandle n;
+    ros::Publisher p2;
     ransacControl *rc2 = ransacControl::uniqueInst(p2, false, n);
 
     if(rc2->getwhich_car().compare("vero") == 0){

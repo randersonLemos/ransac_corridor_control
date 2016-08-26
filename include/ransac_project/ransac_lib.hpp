@@ -28,8 +28,6 @@
 #include "ransac_project/CarCommand.h"
 #include "ransac_project/Bisectrix.h"
 
-using namespace ros;
-using namespace std;
 using namespace std::tr1;
 using namespace tf;
 using namespace mrpt::gui;
@@ -48,7 +46,7 @@ using namespace mrpt::gui;
  * Saidas
  *    bisectrix	: vetor contendo os coeficientes que definem a linha bissetriz (ab, bb, cb)
 */
-vector<double> bisectrixLine(vector<float> l1, vector<float> l2);
+std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
 
 
 /* plotLine
@@ -61,9 +59,9 @@ vector<double> bisectrixLine(vector<float> l1, vector<float> l2);
  *    name	 : string com o nome da linha a ser plotada
 */
 void plotLine(CDisplayWindowPlots &win,
-                const vector<float> &line, 
-                const string &lineFormat, 
-                const string &plotName);
+              const std::vector<float> &line, 
+              const std::string &lineFormat, 
+              const std::string &plotName);
 
 
 /* plotPoints
@@ -77,8 +75,9 @@ void plotLine(CDisplayWindowPlots &win,
  *    name	 : string com o nome dos pontos a ser plotada
 */
 void plotPoints(CDisplayWindowPlots &win, 
-                  const vector<float> &x,
-                  const vector<float> &y, 
-                  const string &lineFormat, 
-                  const string &plotName);
+                const std::vector<float> &x,
+                const std::vector<float> &y, 
+                const std::string &lineFormat, 
+                const std::string &plotName);
+
 #endif /* RANSAC_LIB_H */
