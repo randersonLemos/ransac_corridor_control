@@ -2,7 +2,7 @@
 
 double Control::errori_[1] = {0};
 
-double Control::LineTracking( vector<double> line, const double v_linear, const double v_angular, double dt, double KPT, double KIT, double KRT, double KVT)
+double Control::LineTracking(vector<double> line, const double v_linear, const double v_angular, double dt, double KPT, double KIT, double KRT, double KVT)
 {
   double trans[2], dist[2];
   double dist_val, head, rudder;

@@ -7,38 +7,42 @@
 
 class WatchDog_ransac : public WatchDog{
 public:
-		WatchDog_ransac(ros::NodeHandle node) : WatchDog(node){};
-		int KillApplication();
-		bool StartTimer(double duration);
+    WatchDog_ransac(ros::NodeHandle node) : WatchDog(node){};
+    int KillApplication();
+    bool StartTimer(double duration);
 };
 
 
 class WatchDogHolder_ransac{
 public:
-		WatchDogHolder_ransac(WatchDog_ransac* watchdog) {dog = watchdog;};
-		void operator ()(const ros::TimerEvent& event)		{
-        dog->KillApplication();
-		}
-	
+    WatchDogHolder_ransac(WatchDog_ransac* watchdog) {dog = watchdog;};
+    void operator ()(const ros::TimerEvent& event){
+         dog->KillApplication();
+    }
     WatchDog_ransac* dog;
 };
 
 class laser{
 private:
     static laser* instance;
+
     ros::Publisher* pub_lines;
     ros::Publisher* pub_bisec;
+
     WatchDog* watchdog;
+
     float threshold, p_inliers, dataWidth, winWidth, winLength;
     bool verbose;
-    float winAngle;		   	// angulo utilizado para a divisao da janela	// direita/esquerda na ultima iteracao
-    float last_trajAngle;	// angulo da ultima trajetoria estimada
+    float winAngle; // angulo utilizado para a divisao da janela
+    float last_trajAngle; // angulo da ultima trajetoria estimada
     float last_winAngle;	
 protected:
     laser(const ros::Publisher &p1, const ros::Publisher &p2, const ros::NodeHandle &node);
 public:
     static laser* uniqueInst(const ros::Publisher &p1, const ros::Publisher &p2, const ros::NodeHandle &node);
+
     void laserCallback(const sensor_msgs::LaserScan& msg);
+
     void setthreshold(const double &x);
     void setp_inliers(const double &x);
     void setdataWidth(const double &x);
@@ -51,8 +55,11 @@ public:
 class ransacControl{
 private:
     static ransacControl* instance;
+
     ros::Publisher* pub;
+
     WatchDog_ransac* watchdog;
+
     double angularVel, dt, max_v_linear, v_linear, lenght, KPT, KIT, KRT, KVT;
     std::string which_car;
     ros::Time start_time;
@@ -61,12 +68,12 @@ protected:
     ransacControl(const ros::Publisher &p, const ros::NodeHandle &node);
 public:
     static ransacControl* uniqueInst(ros::Publisher p, ros::NodeHandle node);
+
     void ransacCallback(const ransac_project::Bisectrix &biMsg);
     void odometryCallback(const nav_msgs::Odometry &Odom_msg);
 
     void publica(const ransac_project::CarCommand &msg);
     void publica(const geometry_msgs::Twist &msg);
-
 
     void setv_linear(const double &vlin, const int &ramp_time);
 

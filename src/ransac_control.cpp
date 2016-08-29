@@ -1,62 +1,49 @@
-#include "ransac_lib.hpp"
-#include "control.hpp"
-#include "ransac_classes.hpp"
 #include "topics.hpp"
+#include "control.hpp"
+#include "ransac_lib.hpp"
+#include "ransac_classes.hpp"
 
 /*
-*   parametros:
-*   v_linear: define a velocidade linear do VERO
-*   lenght: distancia entre eixos do VERO
-    which_car: define para que carro o controle sera efetuado
-*   parametros do controlador PID:
-*   KPT:
-*   KIT:
-*   KRT:
-*   KVT:
+* parametros:
+*     lenght:             distancia entre eixos do VERO
+*     v_linear:           define a velocidade linear do VERO
+*     which_car:          define para que carro o controle sera efetuado
+*     KPT, KIT, KRT, KVT: parametros do controlador
 *
-*   ransacCallback:funçao que recebe duas linhas e cria uma bissetriz para que a funçao de Controle possa aplicar
-*   ao movimento correto
-*   Entrada: mensagem ransac_project::BorderLines que define as linhas esquerda e direita e mensagem nav_msgs::Odometry
-*   para obter-se a velocidade angular atual do Pioneer
-*   Saidas: publica a mensagen ransac_project::CarCommand, que envia o comando para o VERO sendo ele uma velocidade linear
-*   e um angulo de rotaçao ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer sendo ele uma velocidade linear e uma angular. Há *    a mensagem ransac_project::Bisectrix, que envia a reta bissetriz encontrada a partir das retas
-*   laterais. Esta mensagem é apenas para visualização do processo
+* ransacCallback: Função que recebe os coeficientes (a, b, c) da reta bissetriz representada na forma ax + by +c = 0
+*      Entrada:
+*           mensagem ransac_project::Bisectrix que define que contem os coeficientes da reta bisetriz
+*      Saidas:
+*           publica a mensagen ransac_project::CarCommand, que envia o comando para o VERO sendo ele uma velocidade linear e um angulo de rotaçao ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer sendo ele uma velocidade linear e uma angular.
 */
 
-using namespace ros;
-using namespace std;
 
-void ctrlHandler(int x)
+void ctrlHandler(int /*x*/)
 {
     ros::NodeHandle n;
     ros::Publisher p2;
     ransacControl *rc2 = ransacControl::uniqueInst(p2, n);
-/*
-    if(rc2->getwhich_car().compare("vero") == 0){
-
+    if(rc2->getwhich_car().compare("vero") == 0){ // Veros's command
         ransac_project::CarCommand msg_vero;
 
-        msg_vero.speedLeft = 0;
+        msg_vero.speedLeft  = 0;
         msg_vero.speedRight = 0;
         msg_vero.steerAngle = 0;
 
         rc2->publica(msg_vero);
     }
-
-    else{
-*/
+    else{ // Pionner's command
         geometry_msgs::Twist msg_pioneer;
 
-        msg_pioneer.linear.x = 0;
-        msg_pioneer.linear.y = 0;
-        msg_pioneer.linear.z = 0;
+        msg_pioneer.linear.x  = 0;
+        msg_pioneer.linear.y  = 0;
+        msg_pioneer.linear.z  = 0;
         msg_pioneer.angular.x = 0;
         msg_pioneer.angular.y = 0;
         msg_pioneer.angular.z = 0;
 
         rc2->publica(msg_pioneer);
-//  }
-
+    }
     sleep(1);
     exit(0);
 }
@@ -83,9 +70,12 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
 
     // ROS_INFO("elapsed_time %lf ramp_time %lf", (start_time - ros::Time::now()).toSec(), ramp_time.toSec());
 
-    rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);    /*funçao de controle*/
+    /* funçao de controle */
+    rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);
+    ROS_ERROR_STREAM(dt);
+
     dt = ros::Time::now().toSec();
-/*
+
     if(which_car.compare("vero") == 0){
 
         ransac_project::CarCommand msg_vero;
@@ -98,9 +88,7 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
 
         pub->publish(msg_vero);
     }
-
     else{
-*/
         geometry_msgs::Twist msg_pioneer;
 
         msg_pioneer.linear.x = v_linear;    /*speedLeft = speedRight*/
@@ -113,7 +101,7 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
         ROS_INFO("v_angular: (%.2f) v_linear: (%.2f)", rudder, v_linear);
 
         pub->publish(msg_pioneer);
-//  }
+  }
 }
 
 int main(int argc, char **argv){
@@ -133,23 +121,26 @@ int main(int argc, char **argv){
         exit(0);
     }
     
-    if(which_car.compare("vero") == 0){
+    if(which_car.compare("vero") == 0){ // Vero's parameters
         if(!nh.getParam("v_linear", v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
         !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT) || !nh.getParam("lenght", lenght) ||
         !nh.getParam("ramp_time", ramp_time)){
             ROS_ERROR("parameters not specified");
             exit(0);
         }
-        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(VERO_COMMAND_TOPIC, 1), n);
-        //rc = ransacControl::uniqueInst(n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1), n);
+        //ros::Publisher pubTwist = n.advertise<geometry_msgs::Twist>(VERO_COMMAND_TOPIC,1);
+        //rc = ransacControl::uniqueInst(pubTwist, n);
+        ros::Publisher pubCarCommand = n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1);
+        rc = ransacControl::uniqueInst(pubCarCommand, n);
     }
-    else if(which_car.compare("pioneer") == 0){
+    else if(which_car.compare("pioneer") == 0){ // Pionner's parameters
         if(!nh.getParam("v_linear", v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
         !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT)){
             ROS_ERROR("parameters not specified");
             exit(0);
         }
-        rc = ransacControl::uniqueInst(n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1), n);
+        ros::Publisher pubTwist = n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1);
+        rc = ransacControl::uniqueInst(pubTwist, n);
     }
     else{
         ROS_ERROR("must specify vero or pioneer");
@@ -169,7 +160,7 @@ int main(int argc, char **argv){
     
     signal(SIGINT, ctrlHandler);
     signal(SIGABRT, ctrlHandler);
-    
+
     ros::Subscriber subOdom = n.subscribe(VERO_ODOMEMTRY_TOPIC, 1, &ransacControl::odometryCallback, rc);
     ros::Subscriber subBise = n.subscribe(RANSAC_BISECTRIX_TOPIC, 1, &ransacControl::ransacCallback, rc);
     ros::spin();

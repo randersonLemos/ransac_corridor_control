@@ -66,7 +66,6 @@ ransacControl* ransacControl::uniqueInst(ros::Publisher p, ros::NodeHandle node)
     if(instance == 0){
         instance = new ransacControl(p, node);
     }
-
     return instance;
 }
 

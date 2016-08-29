@@ -29,7 +29,6 @@
 #include "ransac_project/Bisectrix.h"
 
 using namespace std::tr1;
-using namespace tf;
 using namespace mrpt::gui;
 
 #define PI 3.14159265
@@ -65,7 +64,7 @@ void plotLine(CDisplayWindowPlots &win,
 
 
 /* plotPoints
- *    plota pontos 
+ *    plota pontos
  *	
  *	Entradas
  *    win		 : ponteiro para a janela onde a linha deve ser plotada

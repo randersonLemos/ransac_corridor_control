@@ -93,7 +93,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg){
                 //    vero_point.point.x, vero_point.point.y, vero_point.point.z,
                 //    vero_point.header.stamp.toSec());
             }
-            catch(TransformException& ex){
+            catch(tf::TransformException& ex){
                 ROS_ERROR_STREAM("Received an exception trying to transform a point from "
                                  << LASER_FRAME_ID <<  " to " << BASE_LINK_FRAME_ID << ". "
                                  << ex.what());
