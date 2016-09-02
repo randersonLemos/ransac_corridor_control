@@ -62,7 +62,7 @@ ransacControl::ransacControl(const ros::Publisher &p, const ros::NodeHandle &nod
     //watchdog->StartTimer(DURATION);
 }
 
-ransacControl* ransacControl::uniqueInst(ros::Publisher p, ros::NodeHandle node){
+ransacControl* ransacControl::uniqueInst(const ros::Publisher p, const ros::NodeHandle node){
     if(instance == 0){
         instance = new ransacControl(p, node);
     }
@@ -78,6 +78,16 @@ void ransacControl::publica(const geometry_msgs::Twist &msg){
 }
 
 void ransacControl::setv_linear(const double &vlin, const int &rtime){
+
+    // Necessary block to work with bagfiles and simulated time.
+    // in this context, now() will return 0 until it gets the first
+    // message of /clock topic
+    ros::Rate r(10);
+    while(ros::Time::now().toSec() == 0.0){
+        ROS_INFO_STREAM("Waiting for simulated time from topic /clock");
+        r.sleep();
+    } 
+
     start_time = ros::Time::now();
     ramp_time = ros::Duration(rtime);
     max_v_linear = vlin;

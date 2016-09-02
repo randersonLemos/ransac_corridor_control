@@ -78,28 +78,26 @@ std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
 } /* bisectrixLine */
 
 
-void plotLine(CDisplayWindowPlots &win,
-              const std::vector<float> &line,
-              const std::string &lineFormat,
-              const std::string &plotName){
-
+void plot::Line(CDisplayWindowPlots &win,
+               const std::vector<float> &line,
+               const std::string &lineFormat,
+               const std::string &plotName){
     std::vector<double> lx(21), ly(21);
     for(int i=0; i<21; i++) {
         lx[i] = i-10;
         ly[i] = (-lx[i]*line[0] - line[2])/line[1];
     }
 
-    win.plot(lx,ly,lineFormat,plotName);
+    win.plot(lx, ly, lineFormat, plotName);
     return;
 } /* plotLine */
 
 
-void plotPoints(CDisplayWindowPlots &win,
-                const std::vector<float> &x,
-                const std::vector<float> &y,
-                const std::string &lineFormat,
-                const std::string &plotName){
-
+void plot::Points(CDisplayWindowPlots &win,
+                  const std::vector<float> &x,
+                  const std::vector<float> &y,
+                  const std::string &lineFormat,
+                  const std::string &plotName){
     win.plot(x, y, lineFormat, plotName);
     return;
 } /* plotPoints */

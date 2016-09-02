@@ -32,40 +32,38 @@ using namespace std::tr1;
 using namespace mrpt::gui;
 
 #define PI 3.14159265
-#define DURATION 10 
+#define DURATION 0.5 
+
 
 /* bisectrixLine
  *    Calcula a linha bissetriz entre duas linhas, cada uma delas
- * definida por dois pontos
- *	
+ *  definida por dois pontos
  * Entradas
  *    l1 : vetor contendo os coeficientes da primeira linha (a1, b1, c1)
  *    l2 : vetor contendo os coeficientes da segunda linha (a2, b2, c2)
- *g	
  * Saidas
  *    bisectrix	: vetor contendo os coeficientes que definem a linha bissetriz (ab, bb, cb)
 */
 std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
 
 
+namespace plot{
 /* plotLine
  *    plota uma linha
- *	
  *	Entradas
  *    win		 : ponteiro para a janela onde a linha deve ser plotada
  *    line 	 : vetor contendo os coeficientes da primeira linha (a, b, c)
  *    format : string com o formato da linha a ser plotada
  *    name	 : string com o nome da linha a ser plotada
 */
-void plotLine(CDisplayWindowPlots &win,
-              const std::vector<float> &line, 
-              const std::string &lineFormat, 
-              const std::string &plotName);
+void Line(CDisplayWindowPlots &win,
+          const std::vector<float> &line, 
+          const std::string &lineFormat, 
+          const std::string &plotName);
 
 
 /* plotPoints
  *    plota pontos
- *	
  *	Entradas
  *    win		 : ponteiro para a janela onde a linha deve ser plotada
  *    x      : vetor contendo pontos que serao plotados
@@ -73,10 +71,10 @@ void plotLine(CDisplayWindowPlots &win,
  *    format : string com o formato dos pontos  a ser plotada
  *    name	 : string com o nome dos pontos a ser plotada
 */
-void plotPoints(CDisplayWindowPlots &win, 
-                const std::vector<float> &x,
-                const std::vector<float> &y, 
-                const std::string &lineFormat, 
-                const std::string &plotName);
-
+void Points(CDisplayWindowPlots &win, 
+            const std::vector<float> &x,
+            const std::vector<float> &y, 
+            const std::string &lineFormat, 
+            const std::string &plotName);
+}
 #endif /* RANSAC_LIB_H */

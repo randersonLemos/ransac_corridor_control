@@ -46,11 +46,11 @@ void ctrlHandler(int /*x*/)
     }
     sleep(1);
     exit(0);
-}
+} /* ctrlHandler */
 
 void ransacControl::odometryCallback(const nav_msgs::Odometry &Odom_msg){
     angularVel = Odom_msg.twist.twist.angular.z;
-}
+} /* odometryCallback */
 
 void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
 {
@@ -64,26 +64,27 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
     bisectrix[2] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[0])/biMsg.bisectrix[1];
     bisectrix[3] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[1])/biMsg.bisectrix[1];
 
-    if(v_linear < max_v_linear){
+    if(v_linear < max_v_linear){ // gradually increasing speed
         v_linear = max_v_linear * (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
     }
 
-    // ROS_INFO("elapsed_time %lf ramp_time %lf", (start_time - ros::Time::now()).toSec(), ramp_time.toSec());
+    ROS_INFO_STREAM("CURRENT | " <<
+                    "velocity: " << v_linear <<
+                    " angular velocity: " << angularVel);
 
     /* funçao de controle */
     rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);
-    ROS_ERROR_STREAM(dt);
 
     dt = ros::Time::now().toSec();
 
     if(which_car.compare("vero") == 0){
-
         ransac_project::CarCommand msg_vero;
 
         msg_vero.speedLeft = v_linear;
         msg_vero.speedRight = v_linear;
         msg_vero.steerAngle = rudder; //atan(rudder * lenght / v_linear);
-
+        
+        ROS_INFO("PRECISA AJEITA ESSA MENSSAGEM");
         ROS_INFO("steerAngle: (%.2f) v_linear %lf", msg_vero.steerAngle, v_linear);
 
         pub->publish(msg_vero);
@@ -91,18 +92,20 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
     else{
         geometry_msgs::Twist msg_pioneer;
 
-        msg_pioneer.linear.x = v_linear;    /*speedLeft = speedRight*/
+        msg_pioneer.linear.x = v_linear; /* speedLeft = speedRight */
         msg_pioneer.linear.y = 0;
         msg_pioneer.linear.z = 0;
         msg_pioneer.angular.x = 0;
         msg_pioneer.angular.y = 0;
         msg_pioneer.angular.z = rudder;
 
-        ROS_INFO("v_angular: (%.2f) v_linear: (%.2f)", rudder, v_linear);
+        ROS_INFO_STREAM("TARGET  | " <<
+                        "velocity: " << v_linear <<
+                        " angular velocity: " << rudder << "\n");
 
         pub->publish(msg_pioneer);
-  }
-}
+    }
+} /* ransacCallback */
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "ransac_control");
@@ -112,17 +115,16 @@ int main(int argc, char **argv){
     ransacControl* rc;
 
     /* Essential parameters to perform the vero/pioneer control */
-    int ramp_time;
-    double v_linear, KPT, KIT, KRT, KVT, lenght = 0;
     std::string which_car;
-
+    double max_v_linear, ramp_time, lenght = 0;
+    double KPT, KIT, KRT, KVT;
     if(!nh.getParam("which_car", which_car)){
         ROS_ERROR("must specify vero or pioneer");
         exit(0);
     }
-    
+
     if(which_car.compare("vero") == 0){ // Vero's parameters
-        if(!nh.getParam("v_linear", v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
+        if(!nh.getParam("max_v_linear", max_v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
         !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT) || !nh.getParam("lenght", lenght) ||
         !nh.getParam("ramp_time", ramp_time)){
             ROS_ERROR("parameters not specified");
@@ -134,8 +136,8 @@ int main(int argc, char **argv){
         rc = ransacControl::uniqueInst(pubCarCommand, n);
     }
     else if(which_car.compare("pioneer") == 0){ // Pionner's parameters
-        if(!nh.getParam("v_linear", v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
-        !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT)){
+        if(!nh.getParam("max_v_linear", max_v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
+        !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT) || !nh.getParam("ramp_time", ramp_time)){
             ROS_ERROR("parameters not specified");
             exit(0);
         }
@@ -146,24 +148,24 @@ int main(int argc, char **argv){
         ROS_ERROR("must specify vero or pioneer");
         exit(0);
     }
-    
+
     /* Setting parameters to control vero/pioneer */
     rc->setwhich_car(which_car);
     rc->setangularVel(0);
     rc->setdt(0);
-    rc->setv_linear(v_linear, ramp_time);
+    rc->setv_linear(max_v_linear, ramp_time);
     rc->setKPT(KPT);
     rc->setKIT(KIT);
     rc->setKRT(KRT);
     rc->setKVT(KVT);
     rc->setlenght(lenght);
-    
+
     signal(SIGINT, ctrlHandler);
     signal(SIGABRT, ctrlHandler);
 
     ros::Subscriber subOdom = n.subscribe(VERO_ODOMEMTRY_TOPIC, 1, &ransacControl::odometryCallback, rc);
     ros::Subscriber subBise = n.subscribe(RANSAC_BISECTRIX_TOPIC, 1, &ransacControl::ransacCallback, rc);
     ros::spin();
-    
+
     return 0;
 }

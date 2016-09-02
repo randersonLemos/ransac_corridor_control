@@ -60,14 +60,18 @@ private:
 
     WatchDog_ransac* watchdog;
 
-    double angularVel, dt, max_v_linear, v_linear, lenght, KPT, KIT, KRT, KVT;
+    double angularVel, dt, v_linear;
+
+    /* parameters defined by the user */
+    double max_v_linear, lenght, KPT, KIT, KRT, KVT;
     std::string which_car;
+
     ros::Time start_time;
     ros::Duration ramp_time;
 protected:
     ransacControl(const ros::Publisher &p, const ros::NodeHandle &node);
 public:
-    static ransacControl* uniqueInst(ros::Publisher p, ros::NodeHandle node);
+    static ransacControl* uniqueInst(const ros::Publisher p, const ros::NodeHandle node);
 
     void ransacCallback(const ransac_project::Bisectrix &biMsg);
     void odometryCallback(const nav_msgs::Odometry &Odom_msg);
