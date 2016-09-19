@@ -1,52 +1,53 @@
 #include "control.hpp"
 
+/* *************************NOTAS************************
+A variável Control::errori_, que armazena o erro integral, deve ser declarada
+fora desta função.
+*/
+
 double Control::errori_[1] = {0};
 
-double Control::LineTracking(vector<double> line, const double v_linear, const double v_angular, 
-                             double dt, double KPT, double KIT, double KRT, double KVT){
+double Control::LineTracking(const vector<double> &line,
+                             const double &v_linear, const double &v_angular,
+                             const double &dt,
+                             const double &KPT, const double &KIT, const double &KRT, const double &KVT){
     double trans[2], dist[2];
     double dist_val, head, rudder;
 
     double vel[2], desv_vel[2];
-    double dd, dd1, ddv;
-    double psirefc;
+    double dd = 0, dd1 = 0, ddv = 0;
+    double psirefc = 0;
     float TSAMPLETRAJ = ros::Time::now().toSec() - dt;
-    dd = 0;
-    dd1 = 0;
-    ddv = 0;
-    psirefc = 0;
     //float KIT=0.1;
     //float KRT=1;
     //float KVT=0.1;
 
-    /* ********************NOTAS*******************************
-    A variável Control::errori_, que armazena o erro integral, deve ser declarada
-    fora desta função.
-    */
-
     // convert heading (pose, ins) and velocity (odometry) into NORTHVEL and EASTVEL
     float alfa;
     alfa = atan2(line[3]-line[2], line[1]-line[0]);
-    float northv = v_linear * sin(alfa);
-    float eastv = v_linear * cos(alfa);
+
+    /* rotation from car to trajectory frame*/
+    float eastv  =  v_linear*cos(alfa); /*+0.0*sin(alfa)*/  // parallel to the trajectory
+    float northv = -v_linear*sin(alfa); /*+0.0*cos(alfa)*/  // perpendicular to the trajectory
+
     // the yaw rate in odometry is in rads
     // float YAW_RATE = RAD2DEG(v_angular);  // getting angular velocity from odometry - exchange for INS
 
     //determina o vetor para transicao de trajetoria
     trans[0] = line[1] - line[0];
     trans[1] = line[3] - line[2];
+    
     //normaliza o vetor trans
     float n = sqrt(trans[0]*trans[0]+trans[1]*trans[1]);
     trans[0]/=n;trans[1]/=n;
-
     // ROS_INFO("trans normalizado (%lf , %lf)",trans[0],trans[1]);
 
     // obtem distancias
-    dist[0] =  - line[1];
-    dist[1] =  - line[3];
+    dist[0] =  line[1];
+    dist[1] =  line[3];
 
-    dd = dist[1]*trans[0] - dist[0]*trans[1];
-    // ROS_INFO("dist (%lf , %lf) dd %lf",dist[0],dist[1],dd);
+    dd = trans[0]*dist[1] - trans[1]*dist[0]; // cross product trans x dist
+    ROS_INFO("dist (%lf , %lf) dd %lf",dist[0],dist[1],dd);
     
     // projecao de p1_patual na direcao da reta
     dist_val = dist[0]*trans[0]+dist[1]*trans[1];
@@ -75,7 +76,7 @@ double Control::LineTracking(vector<double> line, const double v_linear, const d
     if (Control::errori_[0] > 27) Control::errori_[0] = 27;
     else if(Control::errori_[0] < -27) Control::errori_[0] = -27;
 
-    ROS_INFO("    terr %lf, derr %lf, ierr %lf", dd, ddv, Control::errori_[0]);
+    //ROS_INFO("terr %lf, derr %lf, ierr %lf", dd, ddv, Control::errori_[0]);
 
     psirefc =   ((-1)*KPT*dd) + ((-1)*KVT*ddv) + ((-1)*KIT*Control::errori_[0]);
     //          (PROPORCIONAL)   (DERIVATIVO)       (INTEGRAL)

@@ -21,11 +21,15 @@ using namespace std;
  *    velocidade angular em rad/s
  */
 
-class Control
-{
-    private:
-        static double errori_[1];
-    public:
-        static double LineTracking( vector<double> line, const double v_linear, const double v_angular, double dt, double KPT, double KIT, double KRT, double KVT);
+
+
+class Control{
+private:
+    static double errori_[1];
+public:
+    static double LineTracking(const vector<double> &line,
+                               const double &v_linear, const double &v_angular,
+                               const double &dt,
+                               const double &KPT, const double &KIT, const double &KRT, const double &KVT);
 };
 

@@ -20,7 +20,7 @@
 
 void ctrlHandler(int /*x*/)
 {
-    ros::NodeHandle n;
+    ros::NodeHandle n; //n and p are just to call the member function uniqueInst
     ros::Publisher p2;
     ransacControl *rc2 = ransacControl::uniqueInst(p2, n);
     if(rc2->getwhich_car().compare("vero") == 0){ // Veros's command
