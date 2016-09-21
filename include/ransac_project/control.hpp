@@ -25,7 +25,7 @@ using namespace std;
 
 class Control{
 private:
-    static double errori_[1];
+    static double errori;
 public:
     static double LineTracking(const vector<double> &line,
                                const double &v_linear, const double &v_angular,

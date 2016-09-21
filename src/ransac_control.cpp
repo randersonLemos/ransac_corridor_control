@@ -68,9 +68,9 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
         v_linear = max_v_linear * (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
     }
 
-    ROS_INFO_STREAM("CURRENT | " <<
-                    "velocity: " << v_linear <<
-                    " angular velocity: " << angularVel);
+    //ROS_INFO_STREAM("CURRENT | " <<
+    //                "velocity: " << v_linear <<
+    //                " angular velocity: " << angularVel);
 
     /* funçao de controle */
     rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);
@@ -99,9 +99,9 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
         msg_pioneer.angular.y = 0;
         msg_pioneer.angular.z = rudder;
 
-        ROS_INFO_STREAM("TARGET  | " <<
-                        "velocity: " << v_linear <<
-                        " angular velocity: " << rudder << "\n");
+        //ROS_INFO_STREAM("TARGET  | " <<
+        //                "velocity: " << v_linear <<
+        //                " angular velocity: " << rudder << "\n");
 
         pub->publish(msg_pioneer);
     }
@@ -152,7 +152,7 @@ int main(int argc, char **argv){
     /* Setting parameters to control vero/pioneer */
     rc->setwhich_car(which_car);
     rc->setangularVel(0);
-    rc->setdt(0);
+    rc->setdt(ros::Time::now().toSec());
     rc->setv_linear(max_v_linear, ramp_time);
     rc->setKPT(KPT);
     rc->setKIT(KIT);

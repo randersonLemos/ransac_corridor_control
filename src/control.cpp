@@ -5,7 +5,7 @@ A variável Control::errori_, que armazena o erro integral, deve ser declarada
 fora desta função.
 */
 
-double Control::errori_[1] = {0};
+double Control::errori = 0.0;
 
 double Control::LineTracking(const vector<double> &line,
                              const double &v_linear, const double &v_angular,
@@ -15,71 +15,80 @@ double Control::LineTracking(const vector<double> &line,
     double dist_val, head, rudder;
 
     double vel[2], desv_vel[2];
-    double dd = 0, dd1 = 0, ddv = 0;
+    double dd  = 0; // perpendicular distante between the vehicle and the trajectory(effective error)
+    double ddv = 0; // perpendicular velocity of the vehicle in relation the trajectory
+    double dd1 = 0; // perpendicular travelled distance by the vehicle in relation the trajectory
     double psirefc = 0;
-    float TSAMPLETRAJ = ros::Time::now().toSec() - dt;
-    //float KIT=0.1;
-    //float KRT=1;
-    //float KVT=0.1;
+    double TSAMPLETRAJ = ros::Time::now().toSec() - dt;
 
+
+
+    /* COMPUTING dd, ddv, dd1*/
     // convert heading (pose, ins) and velocity (odometry) into NORTHVEL and EASTVEL
-    float alfa;
-    alfa = atan2(line[3]-line[2], line[1]-line[0]);
+    double alpha;
+    alpha = atan2(line[3]-line[2], line[1]-line[0]);
+    //ROS_INFO_STREAM("alfa: " << alfa);
 
-    /* rotation from car to trajectory frame*/
-    float eastv  =  v_linear*cos(alfa); /*+0.0*sin(alfa)*/  // parallel to the trajectory
-    float northv = -v_linear*sin(alfa); /*+0.0*cos(alfa)*/  // perpendicular to the trajectory
+    /* setting that the vehicle is aligned with the EAST*/
+    double eastv  =  v_linear; // along the vehicle
+    double northv =  0;        // perpendicular the vehicle
+    //ROS_INFO_STREAM("eastv= " << eastv << " northv= " << northv << " |v|= " <<
+    //                sqrt(eastv*eastv + northv*northv));
 
     // the yaw rate in odometry is in rads
     // float YAW_RATE = RAD2DEG(v_angular);  // getting angular velocity from odometry - exchange for INS
 
-    //determina o vetor para transicao de trajetoria
+    // transition trajectory vector
     trans[0] = line[1] - line[0];
     trans[1] = line[3] - line[2];
-    
-    //normaliza o vetor trans
-    float n = sqrt(trans[0]*trans[0]+trans[1]*trans[1]);
+    double n = sqrt(trans[0]*trans[0] + trans[1]*trans[1]); // transition trajectory vector normalized
     trans[0]/=n;trans[1]/=n;
-    // ROS_INFO("trans normalizado (%lf , %lf)",trans[0],trans[1]);
+    //ROS_INFO_STREAM("normalized trans = (" << trans[0] << ", " << trans[1] << ") " <<
+    //                "|trans|= " << sqrt(trans[0]*trans[0] + trans[1]*trans[1]) <<
+    //                " alpha=" << acos(trans[0]));
 
     // obtem distancias
-    dist[0] =  line[1];
-    dist[1] =  line[3];
+    dist[0] =  line[1]; /* - 0*/
+    dist[1] =  line[3]; /* - 0*/
+    //ROS_INFO_STREAM("dist = (" << dist[0] << ", " << dist[1] << ")");
 
+    // perpendicular distance (effective error)
     dd = trans[0]*dist[1] - trans[1]*dist[0]; // cross product trans x dist
-    ROS_INFO("dist (%lf , %lf) dd %lf",dist[0],dist[1],dd);
-    
-    // projecao de p1_patual na direcao da reta
-    dist_val = dist[0]*trans[0]+dist[1]*trans[1];
+    //ROS_INFO_STREAM("dd = " << dd);
+
+    // distance along the trajectory from the vehicle to the target
+    dist_val = dist[0]*trans[0] + dist[1]*trans[1]; // inner product
+    //ROS_INFO_STREAM("dist_val = " << dist_val);
 
     // Calcula o angulo da direcao da reta
-    vel[0] = eastv; vel[1] = northv;
+    vel[0] = eastv;  // along the vehicle
+    vel[1] = northv; // perpendiculer the vehicle
+    //ROS_INFO_STREAM("vel = (" << vel[0] << ", " << vel[1] << ")");
 
-    // Obtem o deslocamemto devido a velocidade ...
-    desv_vel[0] = vel[0]* TSAMPLETRAJ; desv_vel[1] = vel[1]* TSAMPLETRAJ;
+    // Obtem a velocidade perpendicular a trajetoria
+    ddv = trans[0]*vel[1] - trans[1]*vel[0];
+    //ROS_INFO_STREAM("ddv = " << ddv);
 
-    // ROS_INFO("dist_val %lf vel (%lf , %lf)",dist_val,vel[0],vel[1]);
+    // Obtem o deslocamemto devido a velocidade
+    desv_vel[0] = vel[0]* TSAMPLETRAJ; // parallel the vehicle
+    desv_vel[1] = vel[1]* TSAMPLETRAJ; // perpendicular the vehicle
+    //ROS_INFO_STREAM("desv_vel = (" << desv_vel[0] << ", " << desv_vel[1] << ")");
 
-    // Obtem a distancia deste deslocamento a direcao
-    dd1 =  desv_vel[1]*trans[0] - desv_vel[0]*trans[1];
+    // Obtem deslocamento perpendicular a trajetoria 
+    dd1 =  trans[0]*desv_vel[1] - trans[1]*desv_vel[0];
+    //ROS_INFO_STREAM("dd1 = " << dd1);
 
-    // ROS_INFO("desv_vel (%lf , %lf) dd1 %lf",desv_vel[0],desv_vel[1],dd1);
 
-    // Obtem a velocidade perpendicular
-    ddv = vel[1]*trans[0] - vel[0]*trans[1];
 
-    // ROS_INFO("ddv %lf",ddv);
-    
-    //Mudando para PID comum
-    Control::errori_[0]=Control::errori_[0]+dd;
+    /* COMPUTING THE CONTROL SIGN*/
+    Control::errori = Control::errori + dd*TSAMPLETRAJ;
 
-    if (Control::errori_[0] > 27) Control::errori_[0] = 27;
-    else if(Control::errori_[0] < -27) Control::errori_[0] = -27;
+    if (Control::errori >  27) Control::errori =  27;
+    if (Control::errori < -27) Control::errori = -27;
+    psirefc = KPT*dd + KVT*ddv + KIT*Control::errori;
+    ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << Control::errori);
+    ROS_INFO_STREAM("psirefc = " << psirefc);
 
-    //ROS_INFO("terr %lf, derr %lf, ierr %lf", dd, ddv, Control::errori_[0]);
-
-    psirefc =   ((-1)*KPT*dd) + ((-1)*KVT*ddv) + ((-1)*KIT*Control::errori_[0]);
-    //          (PROPORCIONAL)   (DERIVATIVO)       (INTEGRAL)
 
     psirefc = psirefc>= 90? 89:psirefc;
     psirefc = psirefc<=-90?-89:psirefc;

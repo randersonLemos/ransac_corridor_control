@@ -43,7 +43,8 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg){
             laser_point.point.x = msg.ranges[i] * cos(theta);
             laser_point.point.y = msg.ranges[i] * sin(theta);
 
-            winAngle = 0.3*last_winAngle + 0.7*last_trajAngle;
+            //winAngle = 0.3*last_winAngle + 0.7*last_trajAngle;
+            winAngle = 0.9*last_winAngle + 0.1*last_trajAngle;
             /* car angle -> trajectory angle */
             if(winAngle){
                 laser_point.point.x =  cos(winAngle)*laser_point.point.x +
