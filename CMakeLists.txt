@@ -72,6 +72,7 @@ add_library(${PROJECT_NAME}
   src/ransac_lib.cpp
   src/ransac_2Dline.cpp
   src/svd.cpp
+  src/platform.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

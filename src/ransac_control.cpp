@@ -18,31 +18,39 @@
 */
 
 
+const int sizeRudder = 25;
+double arrayRudder[sizeRudder] = {};
+
+
+double getAverage(double arr[], int size){
+    int i;
+    double sum = 0;
+    double avg;
+    for (i = 0; i < size; ++i){
+        sum += arr[i];
+    }
+    avg = double(sum)/size;
+    return avg;
+}
+
+
 void ctrlHandler(int /*x*/)
 {
     ros::NodeHandle n; //n and p are just to call the member function uniqueInst
     ros::Publisher p2;
     ransacControl *rc2 = ransacControl::uniqueInst(p2, n);
-    if(rc2->getwhich_car().compare("vero") == 0){ // Veros's command
-        ransac_project::CarCommand msg_vero;
 
-        msg_vero.speedLeft  = 0;
-        msg_vero.speedRight = 0;
-        msg_vero.steerAngle = 0;
-
-        rc2->publica(msg_vero);
-    }
-    else{ // Pionner's command
-        geometry_msgs::Twist msg_pioneer;
-
-        msg_pioneer.linear.x  = 0;
-        msg_pioneer.linear.y  = 0;
-        msg_pioneer.linear.z  = 0;
-        msg_pioneer.angular.x = 0;
-        msg_pioneer.angular.y = 0;
-        msg_pioneer.angular.z = 0;
-
-        rc2->publica(msg_pioneer);
+    ros::Time begin = ros::Time::now() + ros::Duration(1.0);
+    while(ros::Time::now() < begin){ // Let's send this command for at least one second
+                                     // for ensuring that the platform stoped
+        if(rc2->getwhich_car().compare("vero") == 0){ // Veros's command
+            static_cast<Vero*>(rc2->getplatform())->setmsg(0.0, 0.0);
+            rc2->publica(static_cast<Vero*>(rc2->getplatform())->getmsg());
+        }
+        else{ // Pionner's command
+            static_cast<Pionner*>(rc2->getplatform())->setmsg(0.0, 0.0);
+            rc2->publica(static_cast<Pionner*>(rc2->getplatform())->getmsg());
+        }
     }
     sleep(1);
     exit(0);
@@ -67,43 +75,44 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
     if(v_linear < max_v_linear){ // gradually increasing speed
         v_linear = max_v_linear * (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
     }
-
     //ROS_INFO_STREAM("CURRENT | " <<
     //                "velocity: " << v_linear <<
     //                " angular velocity: " << angularVel);
 
-    /* funçao de controle */
+
+    /**************************************************************************************/
+    /*Control Function*/
     rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);
+    /**************************************************************************************/
 
     dt = ros::Time::now().toSec();
 
+    for(int i=0; i<sizeRudder-1; ++i){
+        arrayRudder[sizeRudder-1-i] = arrayRudder[sizeRudder-1-i-1];
+    }
+    arrayRudder[0] = rudder;
+
+    for(int i=0; i<5; ++i){
+        ROS_INFO_STREAM(i<<": "<<arrayRudder[i]);
+    }
+    ROS_INFO_STREAM("RudderAvg :" <<getAverage(arrayRudder, sizeRudder));
+
+
     if(which_car.compare("vero") == 0){
-        ransac_project::CarCommand msg_vero;
-
-        msg_vero.speedLeft = v_linear;
-        msg_vero.speedRight = v_linear;
-        msg_vero.steerAngle = rudder; //atan(rudder * lenght / v_linear);
-        
-        ROS_INFO("PRECISA AJEITA ESSA MENSSAGEM");
-        ROS_INFO("steerAngle: (%.2f) v_linear %lf", msg_vero.steerAngle, v_linear);
-
-        pub->publish(msg_vero);
+        //ROS_INFO_STREAM("TARGET  | " <<
+        //                "velocity: " << v_linear <<
+        //                " steering: " << rudder << "\n");
+        ROS_INFO_STREAM("Command send to VERO");
+        static_cast<Vero*>(platform)->setmsg(v_linear, getAverage(arrayRudder, sizeRudder));
+        pub->publish(static_cast<Vero*>(platform)->getmsg());
     }
     else{
-        geometry_msgs::Twist msg_pioneer;
-
-        msg_pioneer.linear.x = v_linear; /* speedLeft = speedRight */
-        msg_pioneer.linear.y = 0;
-        msg_pioneer.linear.z = 0;
-        msg_pioneer.angular.x = 0;
-        msg_pioneer.angular.y = 0;
-        msg_pioneer.angular.z = rudder;
-
         //ROS_INFO_STREAM("TARGET  | " <<
         //                "velocity: " << v_linear <<
         //                " angular velocity: " << rudder << "\n");
-
-        pub->publish(msg_pioneer);
+        ROS_INFO_STREAM("Command send to PIONEER");
+        static_cast<Pionner*>(platform)->setmsg(v_linear, getAverage(arrayRudder, sizeRudder));
+        pub->publish(static_cast<Pionner*>(platform)->getmsg());
     }
 } /* ransacCallback */
 
@@ -112,53 +121,43 @@ int main(int argc, char **argv){
     ros::NodeHandle n;
     ros::NodeHandle nh("~");
 
-    ransacControl* rc;
-
     /* Essential parameters to perform the vero/pioneer control */
     std::string which_car;
-    double max_v_linear, ramp_time, lenght = 0;
     double KPT, KIT, KRT, KVT;
-    if(!nh.getParam("which_car", which_car)){
-        ROS_ERROR("must specify vero or pioneer");
-        exit(0);
+    double max_v_linear, ramp_time, length;
+
+    if(!nh.getParam("KPT", KPT))                  { ROS_ERROR("must specify KPT");          exit(0);}
+    if(!nh.getParam("KIT", KIT))                  { ROS_ERROR("must specify KIT");          exit(0);}
+    if(!nh.getParam("KRT", KRT))                  { ROS_ERROR("must specify KRT");          exit(0);}
+    if(!nh.getParam("KVT", KVT))                  { ROS_ERROR("must specify KVT");          exit(0);}
+    if(!nh.getParam("length", length))            { ROS_ERROR("must specify length");       exit(0);}
+    if(!nh.getParam("ramp_time", ramp_time))      { ROS_ERROR("must specify ramp_time");    exit(0);}
+    if(!nh.getParam("which_car", which_car))      { ROS_ERROR("must specify which_car");    exit(0);}
+    if(!nh.getParam("max_v_linear", max_v_linear)){ ROS_ERROR("must specify max_v_linear"); exit(0);}
+
+    ros::Publisher pub;
+    if(which_car.compare("vero") == 0){
+        pub = n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1);
+    }
+    else if(which_car.compare("pioneer") == 0){
+        pub =  n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1);
+    }
+    else{ ROS_ERROR("which_car must be vero or pioneer"); exit(0);
     }
 
-    if(which_car.compare("vero") == 0){ // Vero's parameters
-        if(!nh.getParam("max_v_linear", max_v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
-        !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT) || !nh.getParam("lenght", lenght) ||
-        !nh.getParam("ramp_time", ramp_time)){
-            ROS_ERROR("parameters not specified");
-            exit(0);
-        }
-        //ros::Publisher pubTwist = n.advertise<geometry_msgs::Twist>(VERO_COMMAND_TOPIC,1);
-        //rc = ransacControl::uniqueInst(pubTwist, n);
-        ros::Publisher pubCarCommand = n.advertise<ransac_project::CarCommand>(VERO_COMMAND_TOPIC, 1);
-        rc = ransacControl::uniqueInst(pubCarCommand, n);
-    }
-    else if(which_car.compare("pioneer") == 0){ // Pionner's parameters
-        if(!nh.getParam("max_v_linear", max_v_linear) || !nh.getParam("KPT", KPT) || !nh.getParam("KIT", KIT) ||
-        !nh.getParam("KRT", KRT) || !nh.getParam("KVT", KVT) || !nh.getParam("ramp_time", ramp_time)){
-            ROS_ERROR("parameters not specified");
-            exit(0);
-        }
-        ros::Publisher pubTwist = n.advertise<geometry_msgs::Twist>(PIONEER_COMMAND_TOPIC, 1);
-        rc = ransacControl::uniqueInst(pubTwist, n);
-    }
-    else{
-        ROS_ERROR("must specify vero or pioneer");
-        exit(0);
-    }
+    ransacControl* rc;
+    rc = ransacControl::uniqueInst(pub, n);
 
     /* Setting parameters to control vero/pioneer */
-    rc->setwhich_car(which_car);
-    rc->setangularVel(0);
-    rc->setdt(ros::Time::now().toSec());
-    rc->setv_linear(max_v_linear, ramp_time);
     rc->setKPT(KPT);
     rc->setKIT(KIT);
     rc->setKRT(KRT);
     rc->setKVT(KVT);
-    rc->setlenght(lenght);
+    rc->setlength(length);
+    rc->setwhich_car(which_car);
+    rc->setplatform(); // I WILL ORGANIZE THIS AFTER
+    rc->setdt(ros::Time::now().toSec());
+    rc->setv_linear(max_v_linear, ramp_time);
 
     signal(SIGINT, ctrlHandler);
     signal(SIGABRT, ctrlHandler);

@@ -1,6 +1,7 @@
 #ifndef RANSAC_CLASSES_H
 #define RANSAC_CLASSES_H
 
+#include "platform.hpp"
 #include "ransac_lib.hpp"
 #include "watchdog/watchdog.hpp"
 
@@ -63,11 +64,13 @@ private:
     double angularVel, dt, v_linear;
 
     /* parameters defined by the user */
-    double max_v_linear, lenght, KPT, KIT, KRT, KVT;
+    double max_v_linear, length, KPT, KIT, KRT, KVT;
     std::string which_car;
 
     ros::Time start_time;
     ros::Duration ramp_time;
+
+    void* platform;
 protected:
     ransacControl(const ros::Publisher &p, const ros::NodeHandle &node);
 public:
@@ -91,9 +94,12 @@ public:
     void setKIT(const double &x);
     void setKRT(const double &x);
     void setKVT(const double &x);
-    void setlenght(const double &x);
+    void setlength(const double &x);
 
     std::string getwhich_car();
     void setwhich_car(const std::string &x);
+
+    void setplatform();
+    void* getplatform();
 };
 #endif /* RANSAC_CLASSES_H */

@@ -133,8 +133,8 @@ void ransacControl::setKVT(const double &x){
     return;
 }
 
-void ransacControl::setlenght(const double &x){
-    lenght = x;
+void ransacControl::setlength(const double &x){
+    length = x;
     return;
 }
 
@@ -146,6 +146,18 @@ void ransacControl::setwhich_car(const std::string &x){
     which_car = x;
     return;
 }
+
+void ransacControl::setplatform(){
+    if(which_car.compare("vero")==0){
+        Vero vero; platform = &vero;}
+    else{
+        Pionner pionner; platform = &pionner;}
+}
+
+void* ransacControl::getplatform(){
+    return platform;
+}
+
 
 /*****************************************************************************/
 
