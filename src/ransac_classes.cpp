@@ -77,8 +77,51 @@ void ransacControl::publica(const geometry_msgs::Twist &msg){
     pub->publish(msg);
 }
 
-void ransacControl::setv_linear(const double &vlin, const int &rtime){
+void ransacControl::setmaxv_linear(const double &x){
+    max_v_linear = x;
+}
 
+void ransacControl::setramp_time(const int &x){
+    ramp_time = ros::Duration(x);
+}
+
+void ransacControl::setKPT(const double &x){
+    KPT = x;
+}
+
+void ransacControl::setKIT(const double &x){
+    KIT = x;
+}
+
+void ransacControl::setKRT(const double &x){
+    KRT = x;
+}
+
+void ransacControl::setKVT(const double &x){
+    KVT = x;
+}
+
+void ransacControl::setlength(const double &x){
+    length = x;
+}
+
+void ransacControl::setwhich_car(const std::string &x){
+    which_car = x;
+}
+
+std::string ransacControl::getwhich_car(){
+    return which_car;
+}
+
+void ransacControl::setangularVel(const double &x){
+    angularVel = x;
+}
+
+double ransacControl::getangularVel(){
+    return angularVel;
+}
+
+void ransacControl::configTime(){
     // Necessary block to work with bagfiles and simulated time.
     // in this context, now() will return 0 until it gets the first
     // message of /clock topic
@@ -89,76 +132,9 @@ void ransacControl::setv_linear(const double &vlin, const int &rtime){
     } 
 
     start_time = ros::Time::now();
-    ramp_time = ros::Duration(rtime);
-    max_v_linear = vlin;
-    v_linear = 0;
-    return;
+    dt = start_time.toSec();
+
 }
-
-double ransacControl::getangularVel(){
-    return angularVel;
-}
-
-void ransacControl::setangularVel(const double &x){
-    angularVel = x;
-    return;
-}
-
-double ransacControl::getdt(){
-    return dt;
-}
-
-void ransacControl::setdt(const double &x){
-    dt = x;
-    return;
-}
-
-void ransacControl::setKPT(const double &x){
-    KPT = x;
-    return;
-}
-
-void ransacControl::setKIT(const double &x){
-    KIT = x;
-    return;
-}
-
-void ransacControl::setKRT(const double &x){
-    KRT = x;
-    return;
-}
-
-void ransacControl::setKVT(const double &x){
-    KVT = x;
-    return;
-}
-
-void ransacControl::setlength(const double &x){
-    length = x;
-    return;
-}
-
-std::string ransacControl::getwhich_car(){
-    return which_car;
-}
-
-void ransacControl::setwhich_car(const std::string &x){
-    which_car = x;
-    return;
-}
-
-void ransacControl::setplatform(){
-    if(which_car.compare("vero")==0){
-        Vero vero; platform = &vero;}
-    else{
-        Pionner pionner; platform = &pionner;}
-}
-
-void* ransacControl::getplatform(){
-    return platform;
-}
-
-
 /*****************************************************************************/
 
 bool WatchDog_ransac::StartTimer (double duration){

@@ -18,10 +18,12 @@
 */
 
 
+namespace aux{
+
 const int sizeRudder = 25;
-double arrayRudder[sizeRudder] = {};
+double Rudder[sizeRudder] = {};
 
-
+/* Compute the average value of the array arr with size size */
 double getAverage(double arr[], int size){
     int i;
     double sum = 0;
@@ -33,6 +35,16 @@ double getAverage(double arr[], int size){
     return avg;
 }
 
+/* Update array arr adding to it a new element at the initial position
+ and discarding the lasted element*/
+void moveWindow(double elem,double arr[], int size){
+    for(int i=0; i<size; ++i){
+        arr[size-1-i] = arr[size -1-i-1];
+    }
+    arr[0] = elem;
+}
+}
+
 
 void ctrlHandler(int /*x*/)
 {
@@ -42,14 +54,22 @@ void ctrlHandler(int /*x*/)
 
     ros::Time begin = ros::Time::now() + ros::Duration(1.0);
     while(ros::Time::now() < begin){ // Let's send this command for at least one second
-                                     // for ensuring that the platform stoped
-        if(rc2->getwhich_car().compare("vero") == 0){ // Veros's command
-            static_cast<Vero*>(rc2->getplatform())->setmsg(0.0, 0.0);
-            rc2->publica(static_cast<Vero*>(rc2->getplatform())->getmsg());
+                                     // for ensuring that the platform stops
+
+        if(rc2->getwhich_car().compare("vero") == 0){
+            ROS_INFO_STREAM("Command send to VERO");
+            ransac_project::CarCommand msgvero;
+            msgvero.speedLeft  = 0.0;
+            msgvero.speedRight = 0.0;
+            msgvero.steerAngle = 0,0;
+            rc2->publica(msgvero);
         }
-        else{ // Pionner's command
-            static_cast<Pionner*>(rc2->getplatform())->setmsg(0.0, 0.0);
-            rc2->publica(static_cast<Pionner*>(rc2->getplatform())->getmsg());
+        else{
+            ROS_INFO_STREAM("Command send to PIONEER");
+            geometry_msgs::Twist msgpionner;
+            msgpionner.linear.x = 0.0 ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
+            msgpionner.angular.x = 0.0; msgpionner.angular.y = 0.0; msgpionner.angular.z = 0.0;
+            rc2->publica(msgpionner);
         }
     }
     sleep(1);
@@ -64,9 +84,7 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
 {
     //watchdog->IsAlive();
 
-    double rudder;
     std::vector<double> bisectrix(4);
-
     bisectrix[0] = -15;
     bisectrix[1] = 15;
     bisectrix[2] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[0])/biMsg.bisectrix[1];
@@ -75,44 +93,33 @@ void ransacControl::ransacCallback(const ransac_project::Bisectrix &biMsg)
     if(v_linear < max_v_linear){ // gradually increasing speed
         v_linear = max_v_linear * (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
     }
-    //ROS_INFO_STREAM("CURRENT | " <<
-    //                "velocity: " << v_linear <<
-    //                " angular velocity: " << angularVel);
-
 
     /**************************************************************************************/
     /*Control Function*/
+    double rudder;
     rudder = Control::LineTracking(bisectrix, v_linear, angularVel, dt, KPT, KIT, KRT, KVT);
     /**************************************************************************************/
 
     dt = ros::Time::now().toSec();
 
-    for(int i=0; i<sizeRudder-1; ++i){
-        arrayRudder[sizeRudder-1-i] = arrayRudder[sizeRudder-1-i-1];
-    }
-    arrayRudder[0] = rudder;
-
-    for(int i=0; i<5; ++i){
-        ROS_INFO_STREAM(i<<": "<<arrayRudder[i]);
-    }
-    ROS_INFO_STREAM("RudderAvg :" <<getAverage(arrayRudder, sizeRudder));
-
+    aux::moveWindow(rudder, aux::Rudder, aux::sizeRudder);
+    //ROS_INFO_STREAM("Instantaneous rudder value: " << rudder);
+    //ROS_INFO_STREAM("Average rudder value:       " <<aux::getAverage(aux::Rudder, aux::sizeRudder));
 
     if(which_car.compare("vero") == 0){
-        //ROS_INFO_STREAM("TARGET  | " <<
-        //                "velocity: " << v_linear <<
-        //                " steering: " << rudder << "\n");
         ROS_INFO_STREAM("Command send to VERO");
-        static_cast<Vero*>(platform)->setmsg(v_linear, getAverage(arrayRudder, sizeRudder));
-        pub->publish(static_cast<Vero*>(platform)->getmsg());
+        ransac_project::CarCommand msgvero;
+        msgvero.speedLeft  = v_linear;
+        msgvero.speedRight = v_linear;
+        msgvero.steerAngle = aux::getAverage(aux::Rudder, aux::sizeRudder);
+        pub->publish(msgvero);
     }
     else{
-        //ROS_INFO_STREAM("TARGET  | " <<
-        //                "velocity: " << v_linear <<
-        //                " angular velocity: " << rudder << "\n");
         ROS_INFO_STREAM("Command send to PIONEER");
-        static_cast<Pionner*>(platform)->setmsg(v_linear, getAverage(arrayRudder, sizeRudder));
-        pub->publish(static_cast<Pionner*>(platform)->getmsg());
+        geometry_msgs::Twist msgpionner;
+        msgpionner.linear.x = v_linear ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
+        msgpionner.angular.x = 0.0;      msgpionner.angular.y = 0.0; aux::getAverage(aux::Rudder, aux::sizeRudder);
+        pub->publish(msgpionner);
     }
 } /* ransacCallback */
 
@@ -148,16 +155,18 @@ int main(int argc, char **argv){
     ransacControl* rc;
     rc = ransacControl::uniqueInst(pub, n);
 
-    /* Setting parameters to control vero/pioneer */
+    /* Setting parameters defined by user */
     rc->setKPT(KPT);
     rc->setKIT(KIT);
     rc->setKRT(KRT);
     rc->setKVT(KVT);
     rc->setlength(length);
+    rc->setramp_time(ramp_time);
     rc->setwhich_car(which_car);
-    rc->setplatform(); // I WILL ORGANIZE THIS AFTER
-    rc->setdt(ros::Time::now().toSec());
-    rc->setv_linear(max_v_linear, ramp_time);
+    rc->setmaxv_linear(max_v_linear);
+
+    /* Adjusting remaning configuration issues */
+    rc->configTime();
 
     signal(SIGINT, ctrlHandler);
     signal(SIGABRT, ctrlHandler);
