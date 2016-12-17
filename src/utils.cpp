@@ -1,5 +1,4 @@
-#include "ransac_lib.hpp"
-
+#include "utils.hpp"
 
 std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
 
@@ -77,8 +76,7 @@ std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
     return bisectrix;
 } /* bisectrixLine */
 
-
-void plot::Line(CDisplayWindowPlots &win,
+void plot::Line(mrpt::gui::CDisplayWindowPlots &win,
                const std::vector<float> &line,
                const std::string &lineFormat,
                const std::string &plotName){
@@ -92,8 +90,7 @@ void plot::Line(CDisplayWindowPlots &win,
     return;
 } /* plotLine */
 
-
-void plot::Points(CDisplayWindowPlots &win,
+void plot::Points(mrpt::gui::CDisplayWindowPlots &win,
                   const std::vector<float> &x,
                   const std::vector<float> &y,
                   const std::string &lineFormat,

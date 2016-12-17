@@ -66,12 +66,14 @@ include_directories(include
 )
 
 ## Declare a cpp library
-add_library(${PROJECT_NAME} 
-  src/control.cpp
-  src/ransac_classes.cpp
-  src/ransac_lib.cpp
-  src/ransac_2Dline.cpp
+add_library(${PROJECT_NAME}
   src/svd.cpp
+  src/utils.cpp
+  src/control.cpp
+  src/ransac_laser.cpp
+  src/ransac_2Dline.cpp
+  src/ransac_control.cpp
+  src/ransac_classes.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -81,30 +83,38 @@ target_link_libraries(${PROJECT_NAME}
 
 ## Declare a cpp executable
 #add_executable(ransac src/ransac.cpp)
-add_executable(ransac src/ransac.cpp)
-add_executable(ransac_control src/ransac_control.cpp)
-add_executable(dataplot src/dataplot.cpp)
+add_executable(ransac_node src/ransac_node.cpp)
+add_executable(control_node src/control_node.cpp)
+add_executable(visual_node src/visual_node.cpp)
+add_executable(test_ransac_project test/test_node.cpp)  # test node
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_project_gencpp)
-add_dependencies(ransac ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(ransac_control ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(dataplot ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(ransac_node ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(control_node ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(visual_node ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(test_ransac_project ransac_project_gencpp ${PROJECT_NAME}) # teste node
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ransac
+target_link_libraries(ransac_node
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
 
-target_link_libraries(ransac_control
+target_link_libraries(control_node
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
 
-target_link_libraries(dataplot
+target_link_libraries(visual_node
+  ${catkin_LIBRARIES}
+  ${MRPT_LIBS}
+  ${PROJECT_NAME}
+)
+
+target_link_libraries(test_ransac_project
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}

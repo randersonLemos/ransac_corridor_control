@@ -1,5 +1,5 @@
-#include "ransac_2Dline.hpp"
 #include "svd.hpp"
+#include "ransac_2Dline.hpp"
 
 int ransac_2Dline(float **data, int n, int maxT, float threshold,
 					float *bestModel, int *bestInliers, int verbose) {

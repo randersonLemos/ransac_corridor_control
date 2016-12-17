@@ -1,10 +1,7 @@
+#include <cmath>
 #include <vector>
-#include <math.h>
 #include <time.h>
-#include "ros/ros.h"
-#include <mrpt/utils.h>
-
-using namespace std;
+#include <ros/ros.h>
 
 #define PI 3.14159265
 
@@ -27,7 +24,7 @@ class Control{
 private:
     static double errori;
 public:
-    static double LineTracking(const vector<double> &line,
+    static double LineTracking(const std::vector<double> &line,
                                const double &v_linear, const double &v_angular,
                                const double &dt,
                                const double &KPT, const double &KIT, const double &KRT, const double &KVT);

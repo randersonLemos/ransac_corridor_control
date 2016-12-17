@@ -1,11 +1,11 @@
 #ifndef RANSAC_2DLINE_H
 #define RANSAC_2DLINE_H
 
+#include <time.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <time.h>
 
 /* ransac_2Dline - ajusta uma reta que melhor se encaixa a nuvem de pontos utilizando o algoritmo ransac
 

@@ -1,24 +1,6 @@
-/* Standard Libraries*/
-#include <fstream>
-#include <iostream>
+#include "ransac_laser.hpp"
 
-/* ROS */
-#include "ros/ros.h"
-
-/* ROS msgs */
-#include "sensor_msgs/LaserScan.h"
-#include "geometry_msgs/PointStamped.h"
-
-/* User */
-#include "topics.hpp"
-#include "ransac_lib.hpp"
-#include "ransac_2Dline.hpp"
-#include "ransac_classes.hpp"
-
-/* User msgs */
-#include "ransac_project/Bisectrix.h"
-#include "ransac_project/BorderLines.h"
-
+laser* laser::instance = 0;
 
 void laser::laserCallback(const sensor_msgs::LaserScan& msg){
     //watchdog->IsAlive();
@@ -60,7 +42,7 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg){
                 listener.transformPoint(BASE_LINK_FRAME_ID, laser_point, vero_point);
 
                 if(laser_point.point.x < (winLength * dataWidth) &&
-                abs(laser_point.point.y) < (winWidth * dataWidth)){
+                std::abs(laser_point.point.y) < (winWidth * dataWidth)){
                     if(laser_point.point.y > 0){ // points of the left line
                         if(winAngle){
                             /* trajectory angle -> car angle*/
@@ -180,38 +162,23 @@ void laser::laserCallback(const sensor_msgs::LaserScan& msg){
     }
 }
 
-int main(int argc,char **argv){
-    ros::init(argc, argv, "ransac");
-    ros::NodeHandle n;
-    ros::NodeHandle nh("~");
 
-    /* parametros fundamentais para a execução do software */
-    double threshold, dataWidth, winWidth, winLength;
-    if(!nh.getParam("threshold", threshold) || !nh.getParam("dataWidth", dataWidth) ||
-    !nh.getParam("winWidth", winWidth)   || !nh.getParam("winLength", winLength)){
-        ROS_ERROR("parameters not specified");
-        exit(0);
+laser::laser(const ros::Publisher &p1, const ros::Publisher &p2, const ros::NodeHandle &node){
+    pub_lines = new ros::Publisher();
+    pub_bisec = new ros::Publisher();
+    *pub_lines = p1;
+    *pub_bisec = p2;
+    //watchdog = new WatchDog_ransac(node);
+    //watchdog->StartTimer(DURATION);
+    winAngle = 0;
+    last_trajAngle = 0;
+    last_winAngle = 0;
+}
+
+
+laser* laser::uniqueInst(const ros::Publisher &p1, const ros::Publisher &p2, const ros::NodeHandle &node){
+    if(instance == 0){
+        instance = new laser(p1, p2, node);
     }
-
-    bool verbose;
-    if(!nh.getParam("verbose",verbose)){
-        verbose = false;
-    }
-
-    ros::Publisher ransac_pub = n.advertise<ransac_project::BorderLines>(RANSAC_LINES_TOPIC, 1);
-    ros::Publisher bisec_pub  = n.advertise<ransac_project::Bisectrix>(RANSAC_BISECTRIX_TOPIC, 1);
-
-    laser* ls = laser::uniqueInst(ransac_pub, bisec_pub, n);
-
-    ls->setthreshold(threshold);
-    ls->setdataWidth(dataWidth);
-    ls->setwinWidth(winWidth);
-    ls->setwinLength(winLength);
-    ls->setVerbose(verbose);
-
-    ros::Subscriber laser_sub = n.subscribe(VERO_LASER_SCAN_TOPIC, 1, &laser::laserCallback, ls);
-
-    ros::spin();
-
-    return 0;
+    return instance;
 }
