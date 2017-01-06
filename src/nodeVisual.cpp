@@ -11,14 +11,10 @@ void linesCallback(const ransac_project::BorderLines& msg){
     plot::Line(*window, msg.line_right, "b-2", "ransac: right side");
     plot::Points(*window, msg.x_left, msg.y_left, "g.2","scan: left side");
     plot::Points(*window, msg.x_right, msg.y_right, "m.2","scan: right side");
-
-  return;
 } /* linesCallback */
 
 void bisecCallback(const ransac_project::Bisectrix& msg){
     plot::Line(*window, msg.bisectrix, "g-2","bisectrix");
-
-  return;
 } /* bisecCallback */
 
 int main(int argc, char** argv){
@@ -30,16 +26,17 @@ int main(int argc, char** argv){
     window->axis(-2, 15, -5, 5, true);
 
     /* Parameters for topic names*/
-    std::string RANSAC_LINES_TOPIC, RANSAC_BISECTRIX_TOPIC;
-    if(!nh.getParam("/RANSAC_LINES_TOPIC", RANSAC_LINES_TOPIC)){
-        ROS_ERROR_STREAM("Failed to get param '/RANSAC_LINES_TOPIC'"); exit(0);
+    std::string RANS_LINES_TOPIC,
+                RANS_BISEC_TOPIC;
+    if(!nh.getParam("/RANS_LINES_TOPIC", RANS_LINES_TOPIC)){
+        ROS_ERROR_STREAM("Failed to get param '/RANS_LINES_TOPIC'"); exit(0);
     }
-    if(!nh.getParam("/RANSAC_BISECTRIX_TOPIC", RANSAC_BISECTRIX_TOPIC)){
-        ROS_ERROR_STREAM("Failed to get param '/RANSAC_BISECTRIX_TOPIC'"); exit(0);
+    if(!nh.getParam("/RANS_BISEC_TOPIC", RANS_BISEC_TOPIC)){
+        ROS_ERROR_STREAM("Failed to get param '/RANS_BISEC_TOPIC'"); exit(0);
     }
 
-    ros::Subscriber sub1 = n.subscribe(RANSAC_LINES_TOPIC, 1, linesCallback);
-    ros::Subscriber sub2 = n.subscribe(RANSAC_BISECTRIX_TOPIC, 1, bisecCallback);
+    ros::Subscriber sub1 = n.subscribe(RANS_LINES_TOPIC, 1, linesCallback);
+    ros::Subscriber sub2 = n.subscribe(RANS_BISEC_TOPIC, 1, bisecCallback);
 
     ros::spin();
 

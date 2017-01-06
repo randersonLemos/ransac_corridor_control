@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include "watchdog/watchdog.hpp"
 
-#define DURATION 0.5 // for WathDog_ransac 
+//#define DURATION 0.5 // for WathDog_ransac 
 
 class WatchDog_ransac : public WatchDog{
 public:

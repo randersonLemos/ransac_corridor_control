@@ -69,11 +69,11 @@ include_directories(include
 add_library(${PROJECT_NAME}
   src/svd.cpp
   src/utils.cpp
+  src/laser.cpp
   src/control.cpp
-  src/ransac_laser.cpp
-  src/ransac_2Dline.cpp
-  src/ransac_control.cpp
-  src/ransac_classes.cpp
+  src/controlPIV.cpp
+  src/ransac2Dline.cpp
+  #src/ransac_classes.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -83,32 +83,32 @@ target_link_libraries(${PROJECT_NAME}
 
 ## Declare a cpp executable
 #add_executable(ransac src/ransac.cpp)
-add_executable(ransac_node src/ransac_node.cpp)
-add_executable(control_node src/control_node.cpp)
-add_executable(visual_node src/visual_node.cpp)
+add_executable(nodeRansac src/nodeRansac.cpp)
+add_executable(nodeControl src/nodeControl.cpp)
+add_executable(nodeVisual src/nodeVisual.cpp)
 add_executable(test_ransac_project test/test_node.cpp)  # test node
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_project_gencpp)
-add_dependencies(ransac_node ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(control_node ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(visual_node ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(nodeRansac ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(nodeControl ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(nodeVisual ransac_project_gencpp ${PROJECT_NAME})
 add_dependencies(test_ransac_project ransac_project_gencpp ${PROJECT_NAME}) # teste node
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ransac_node
+target_link_libraries(nodeRansac
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
 
-target_link_libraries(control_node
+target_link_libraries(nodeControl
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
 
-target_link_libraries(visual_node
+target_link_libraries(nodeVisual
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}

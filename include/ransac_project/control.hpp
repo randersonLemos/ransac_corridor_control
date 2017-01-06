@@ -1,32 +1,63 @@
-#include <cmath>
-#include <vector>
-#include <time.h>
+#ifndef RANSAC_CONTROL_H
+#define RANSAC_CONTROL_H
+
 #include <ros/ros.h>
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 
-#define PI 3.14159265
-
-/* LineTracking
- *     Função de controle para seguir uma trajetória dada por uma reta
- * Entradas: 
- *    line               : vetor contendo os pontos que definem a trajetória (x1, x2, y1, y2)
- *    v_linear           : velocidade linear do veículo
- *    v_angular          : velocidade angular do veiculo
- *    dt                 : intervalo de tempo desde a ultima chamada da funcao
- *    KPT, KIT, KRT, KVT : ganhos do controlador
- *
- * Saída:
- *    velocidade angular em rad/s
- */
+#include "controlPIV.hpp"
+#include "ransac_project/Bisectrix.h"
+#include "ransac_project/CarCommand.h"
+#include "ransac_project/BorderLines.h"
 
 
 
 class Control{
 private:
-    static double errori;
-public:
-    static double LineTracking(const std::vector<double> &line,
-                               const double &v_linear, const double &v_angular,
-                               const double &dt,
-                               const double &KPT, const double &KIT, const double &KRT, const double &KVT);
-};
+    typedef ros::Publisher pub;
+    typedef ros::NodeHandle nHandle;
 
+    static Control *instance;
+
+    pub *pubCommand;
+
+    //WatchDog *watchdog;
+
+    double linearVel, angularVel, dt;
+    ros::Time startTime;
+
+    /* parameters defined by the user */
+    double KPT, KIT, KRT, KVT, maxLinearVel, length;
+    std::string platform;
+    ros::Duration rampTime;
+protected:
+    Control () {}
+    Control (const Control& other) {}
+    Control &operator= (const Control& other) {}
+public:
+    static Control* uniqueInst ();
+
+    void ransacCallback(const ransac_project::Bisectrix &biMsg);
+    void odometryCallback(const nav_msgs::Odometry &Odom_msg);
+
+    void publica(const ransac_project::CarCommand &msg);
+    void publica(const geometry_msgs::Twist &msg);
+
+    void configTime();
+
+    void setPub(const pub &pCommand);
+    void setKPT(const double &x);
+    void setKIT(const double &x);
+    void setKRT(const double &x);
+    void setKVT(const double &x);
+    void setLength(const double &x);
+    void setPlatform(const std::string &x);
+    void setRampTime(const int &x);
+    void setAngularVel(const double &x);
+    void setMaxLinearVel(const double &x);
+
+    double getAngularVel();
+    std::string getPlatform();
+
+};
+#endif /* RANSAC_CONTROL_H */

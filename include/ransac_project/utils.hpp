@@ -15,7 +15,7 @@
  * @param l2 Coeficientes da reta para o cálculo da bissetriz
  * @return Os coeficientes da reta bissetriz
 */
-std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
+std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
 
 namespace plot{
 /**

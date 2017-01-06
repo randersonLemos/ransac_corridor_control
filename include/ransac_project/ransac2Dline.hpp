@@ -1,5 +1,5 @@
-#ifndef RANSAC_2DLINE_H
-#define RANSAC_2DLINE_H
+#ifndef RANSAC2DLINE_H
+#define RANSAC2DLINE_H
 
 #include <time.h>
 #include <math.h>
@@ -74,4 +74,4 @@ void estimateModel_line(float *l, float **P, int n);
 */
 void twoPointsLine(float *l, float **P);
 
-#endif
+#endif /* RANSAC2DLINE_H */

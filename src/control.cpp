@@ -1,94 +1,150 @@
 #include "control.hpp"
 
-/* *************************NOTAS************************
-A variável Control::errori_, que armazena o erro integral, deve ser declarada
-fora desta função.
-*/
+Control* Control::instance = 0;
 
-double Control::errori = 0.0;
+namespace aux{
 
-double Control::LineTracking(const std::vector<double> &line,
-                             const double &v_linear, const double &v_angular,
-                             const double &dt,
-                             const double &KPT, const double &KIT, const double &KRT, const double &KVT){
-    double trans[2], dist[2];
-    double dist_val, head, rudder;
+const int sizeRudder = 25;
+double Rudder[sizeRudder] = {};
 
-    double vel[2], desv_vel[2];
-    double dd  = 0; // perpendicular distante between the vehicle and the trajectory(effective error)
-    double ddv = 0; // perpendicular velocity of the vehicle in relation the trajectory
-    double dd1 = 0; // perpendicular travelled distance by the vehicle in relation the trajectory
-    double psirefc = 0;
-    double TSAMPLETRAJ = ros::Time::now().toSec() - dt;
+/* Compute the average value of the array arr with size size */
+double getAverage(double arr[], int size){
+    int i;
+    double sum = 0;
+    double avg;
+    for (i = 0; i < size; ++i){
+        sum += arr[i];
+    }
+    avg = double(sum)/size;
+    return avg;
+}
 
-    /* COMPUTING dd, ddv, dd1*/
-    // setting that the vehicle is aligned with the EAST
-    double eastv  =  v_linear; // along the vehicle
-    double northv =  0;        // perpendicular the vehicle
-    //ROS_INFO_STREAM("eastv= " << eastv << " northv= " << northv << " |v|= " <<
-    //                sqrt(eastv*eastv + northv*northv));
+/* Update array arr adding to it a new element at the initial position
+ and discarding the lasted element*/
+void moveWindow(double elem,double arr[], int size){
+    for(int i=0; i<size; ++i){
+        arr[size-1-i] = arr[size -1-i-1];
+    }
+    arr[0] = elem;
+}
+}
 
-    // transition trajectory vector
-    trans[0] = line[1] - line[0];
-    trans[1] = line[3] - line[2];
-    double n = sqrt(trans[0]*trans[0] + trans[1]*trans[1]); // transition trajectory vector normalized
-    trans[0]/=n;trans[1]/=n;
-    //ROS_INFO_STREAM("normalized trans = (" << trans[0] << ", " << trans[1] << ") " <<
-    //                "|trans|= " << sqrt(trans[0]*trans[0] + trans[1]*trans[1]) <<
-    //                " alpha=" << acos(trans[0]));
 
-    // get distances
-    dist[0] =  line[1]; /* - 0*/
-    dist[1] =  line[3]; /* - 0*/
-    //ROS_INFO_STREAM("dist = (" << dist[0] << ", " << dist[1] << ")");
+void Control::odometryCallback(const nav_msgs::Odometry &Odom_msg){
+    angularVel = Odom_msg.twist.twist.angular.z;
+} /* odometryCallback */
 
-    // perpendicular distance (effective error)
-    dd = trans[0]*dist[1] - trans[1]*dist[0]; // cross product trans x dist
-    //ROS_INFO_STREAM("dd = " << dd);
+void Control::ransacCallback(const ransac_project::Bisectrix &biMsg)
+{
+    //watchdog->IsAlive();
 
-    // distance along the trajectory from the vehicle to the target
-    dist_val = dist[0]*trans[0] + dist[1]*trans[1]; // inner product
-    //ROS_INFO_STREAM("dist_val = " << dist_val);
+    std::vector<double> bisectrix(4);
+    bisectrix[0] = -15;
+    bisectrix[1] = 15;
+    bisectrix[2] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[0])/biMsg.bisectrix[1];
+    bisectrix[3] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[1])/biMsg.bisectrix[1];
 
-    // vehicle velocities
-    vel[0] = eastv;  // along the vehicle
-    vel[1] = northv; // perpendiculer the vehicle
-    //ROS_INFO_STREAM("vel = (" << vel[0] << ", " << vel[1] << ")");
+    if(linearVel < maxLinearVel){ // gradually increasing speed
+        linearVel = maxLinearVel * (ros::Time::now() - startTime).toSec() / rampTime.toSec();
+    }
 
-    // component velocity perpendicular to the trajectory
-    ddv = trans[0]*vel[1] - trans[1]*vel[0];
-    //ROS_INFO_STREAM("ddv = " << ddv);
+    /**************************************************************************************/
+    /*Control Function*/
+    double rudder;
+    rudder = ControlPIV::LineTracking(bisectrix, linearVel, angularVel, dt, KPT, KIT, KRT, KVT);
+    /**************************************************************************************/
 
-    // vehicle displacement
-    desv_vel[0] = vel[0]* TSAMPLETRAJ; // parallel the vehicle
-    desv_vel[1] = vel[1]* TSAMPLETRAJ; // perpendicular the vehicle
-    //ROS_INFO_STREAM("desv_vel = (" << desv_vel[0] << ", " << desv_vel[1] << ")");
+    dt = ros::Time::now().toSec();
 
-    // vehicle displacement perpendicular to the trajectory
-    dd1 =  trans[0]*desv_vel[1] - trans[1]*desv_vel[0];
-    //ROS_INFO_STREAM("dd1 = " << dd1);
+    aux::moveWindow(rudder, aux::Rudder, aux::sizeRudder);
+    //ROS_INFO_STREAM("Instantaneous rudder value: " << rudder);
+    //ROS_INFO_STREAM("Average rudder value:       " <<aux::getAverage(aux::Rudder, aux::sizeRudder));
 
-    /* COMPUTING THE CONTROL SIGN*/
-    Control::errori = Control::errori + dd*TSAMPLETRAJ;
+    if(platform.compare("vero") == 0){
+        ROS_INFO_STREAM("Command send to VERO");
+        ransac_project::CarCommand msgvero;
+        msgvero.speedLeft  = linearVel;
+        msgvero.speedRight = linearVel;
+        msgvero.steerAngle = aux::getAverage(aux::Rudder, aux::sizeRudder);
+        pubCommand->publish(msgvero);
+    }
+    else{
+        ROS_INFO_STREAM("Command send to PIONEER");
+        geometry_msgs::Twist msgpionner;
+        msgpionner.linear.x = linearVel ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
+        msgpionner.angular.x = 0.0;      msgpionner.angular.y = 0.0; aux::getAverage(aux::Rudder, aux::sizeRudder);
+        pubCommand->publish(msgpionner);
+    }
+} /* ransacCallback */
 
-    if (Control::errori >  27) Control::errori =  27;
-    if (Control::errori < -27) Control::errori = -27;
-    psirefc = KPT*dd + KVT*ddv + KIT*Control::errori;
-    //ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << Control::errori);
-    //ROS_INFO_STREAM("psirefc = " << psirefc);
 
-    psirefc = psirefc>= 90? 89:psirefc;
-    psirefc = psirefc<=-90?-89:psirefc;
+Control* Control::uniqueInst(){
+    if(instance == 0){
+        instance = new Control();
+    }
+    return instance;
+}
 
-    rudder = psirefc;
-    rudder = KRT * rudder;
+void Control::configTime(){
+    // Necessary block to work with bagfiles and simulated time.
+    // in this context, now() will return 0 until it gets the first
+    // message of /clock topic
+    bool print = true;
+    while(!ros::Time::now().toSec()){
+        if(print) ROS_INFO("Waiting for simulated time...");
+        print = false;
+    }
+    startTime = ros::Time::now();
+    dt = startTime.toSec();
+}
 
-    rudder = (rudder>20?20:(rudder<-20?-20:rudder));
-    
-    // steering angle
-    rudder = rudder*PI/180;
-    //ROS_INFO_STREAM("rudder = " << rudder);
+void Control::publica(const ransac_project::CarCommand &msg){
+    pubCommand->publish(msg);
+}
+void Control::publica(const geometry_msgs::Twist &msg){
+    pubCommand->publish(msg);
+}
 
-    return rudder;
 
-} // LineTracking
+/////////////////////////////////////////////////////////////////////
+// Sets and gets ////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+void Control::setPub(const pub &pCommand){
+    pubCommand = new pub();
+    *pubCommand = pCommand;
+}
+void Control::setKPT(const double &x){
+    KPT = x;
+}
+void Control::setKIT(const double &x){
+    KIT = x;
+}
+void Control::setKRT(const double &x){
+    KRT = x;
+}
+void Control::setKVT(const double &x){
+    KVT = x;
+}
+void Control::setLength(const double &x){
+    length = x;
+}
+void Control::setPlatform(const std::string &x){
+    platform = x;
+}
+void Control::setRampTime(const int &x){
+    rampTime = ros::Duration(x);
+}
+void Control::setAngularVel(const double &x){
+    angularVel = x;
+}
+void Control::setMaxLinearVel(const double &x){
+    maxLinearVel = x;
+}
+
+std::string Control::getPlatform(){
+    return platform;
+}
+double Control::getAngularVel(){
+    return angularVel;
+}

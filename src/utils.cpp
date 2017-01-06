@@ -1,35 +1,23 @@
 #include "utils.hpp"
 
-std::vector<double> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
+std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
 
-    std::vector<double> bisectrix(3), V1(2), V2(2), VY(2);
-    double a1, b1, c1, a2, b2, c2;
-    double a1k, b1k, c1k, a2k, b2k, c2k, k1, k2;
-    double bi1_a, bi1_b, bi1_c, bi2_a, bi2_b, bi2_c, theta1, theta2, modV1, modV2, modVY;
+    std::vector<float> bisectrix(3), V1(2), V2(2), VY(2);
+    float a1, b1, c1, a2, b2, c2;
+    float a1k, b1k, c1k, a2k, b2k, c2k, k1, k2;
+    float bi1_a, bi1_b, bi1_c, bi2_a, bi2_b, bi2_c, theta1, theta2, modV1, modV2, modVY;
 
-    a1 = l1[0];
-    b1 = l1[1];
-    c1 = l1[2];
-    a2 = l2[0];
-    b2 = l2[1];
-    c2 = l2[2];
+    a1 = l1[0]; b1 = l1[1]; c1 = l1[2];
+    a2 = l2[0]; b2 = l2[1]; c2 = l2[2];
 
     k1 = sqrt(a1*a1 + b1*b1);
     k2 = sqrt(a2*a2 + b2*b2);
 
-    a1k = a1/k1;
-    b1k = b1/k1;
-    c1k = c1/k1;
-    a2k = a2/k2;
-    b2k = b2/k2;
-    c2k = c2/k2;
+    a1k = a1/k1; b1k = b1/k1; c1k = c1/k1;
+    a2k = a2/k2; b2k = b2/k2; c2k = c2/k2;
 
-    bi1_a = (a1k - a2k);
-    bi1_b = (b1k - b2k);
-    bi1_c = (c1k - c2k);
-    bi2_a = (a1k + a2k);
-    bi2_b = (b1k + b2k);
-    bi2_c = (c1k + c2k);
+    bi1_a = (a1k - a2k); bi1_b = (b1k - b2k); bi1_c = (c1k - c2k); 
+    bi2_a = (a1k + a2k); bi2_b = (b1k + b2k); bi2_c = (c1k + c2k);
 
     // seleciona a bissetriz com menor angulo em relacao ao eixo Y
     // evitando divisoes por zero
