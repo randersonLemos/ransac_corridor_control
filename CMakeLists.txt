@@ -72,6 +72,7 @@ add_library(${PROJECT_NAME}
   src/laser.cpp
   src/control.cpp
   src/controlPIV.cpp
+  src/handlePoints.cpp
   src/ransac2Dline.cpp
   #src/ransac_classes.cpp
 )

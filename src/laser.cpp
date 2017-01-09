@@ -9,46 +9,30 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
 
     for(unsigned int i = 0; i < msg.ranges.size(); ++i){
         if(msg.ranges[i] < msg.range_max && msg.ranges[i] > msg.range_min){
-            float theta;
-            theta = msg.angle_min + i * msg.angle_increment;
+            float theta = msg.angle_min + i * msg.angle_increment;
+            float arr[] = {msg.ranges[i] * cos(theta), msg.ranges[i] * sin(theta)};
 
             geometry_msgs::PointStamped laser_point;
             laser_point.header.stamp = ros::Time::now();
             laser_point.header.frame_id = msg.header.frame_id;
-            laser_point.point.x = msg.ranges[i] * cos(theta); // from polar to cartesian coordinate (laser frame)
-            laser_point.point.y = msg.ranges[i] * sin(theta);
+            laser_point.point.x = arr[0];
+            laser_point.point.y = arr[1];
 
-//            winAngle = 0.3*last_winAngle + 0.7*last_trajAngle;
-            winAngle = 0.9*last_winAngle + 0.1*last_trajAngle;
-
-            laser_point.point.x =  cos(winAngle)*laser_point.point.x + // rotating laser to trajectory frame
-                                   sin(winAngle)*laser_point.point.y;
-            laser_point.point.y = -sin(winAngle)*laser_point.point.x +
-                                   cos(winAngle)*laser_point.point.y;
             try{
                 geometry_msgs::PointStamped vero_point;
                 listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
                 listener.transformPoint(baseFrame, laser_point, vero_point);
 
-                if(laser_point.point.x < (winLength * dataWidth) &&
-                std::abs(laser_point.point.y) < (winWidth * dataWidth)){ //points inside the window of interest
-                    if(laser_point.point.y > 0){ // points of the left line
-                         x_left.push_back(cos(winAngle)*vero_point.point.x -
-                                          sin(winAngle)*vero_point.point.y);
-                         y_left.push_back(sin(winAngle)*vero_point.point.x +
-                                          cos(winAngle)*vero_point.point.y);
-                    }
-                    else if(laser_point.point.y < 0){ // points of the rigth line
-                         x_right.push_back(cos(winAngle)*vero_point.point.x -
-                                           sin(winAngle)*vero_point.point.y);
-                         y_right.push_back(sin(winAngle)*vero_point.point.x +
-                                           cos(winAngle)*vero_point.point.y);
-                    }
+                if(HandlePoints::selector(arr, &bisLine[0]) == 'L'){
+                    x_left.push_back(vero_point.point.x);
+                    y_left.push_back(vero_point.point.y);
+
                 }
-                //ROS_INFO("hokuyo: (%.2f, %.2f. %.2f) -----> vero: (%.2f, %.2f, %.2f) at time %.2f",
-                //    laser_point.point.x, laser_point.point.y, laser_point.point.z,
-                //    vero_point.point.x, vero_point.point.y, vero_point.point.z,
-                //    vero_point.header.stamp.toSec());
+                else if (HandlePoints::selector(arr, &bisLine[0]) == 'R'){
+                    x_right.push_back(vero_point.point.x);
+                    y_right.push_back(vero_point.point.y);
+
+                }
             }
             catch(tf::TransformException& ex){
                 ROS_ERROR_STREAM("Received an exception trying to transform a point from "
@@ -97,7 +81,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         msgBorderLines.y_right = y_right;
         pubLine->publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
-        std::vector<float> bisLine = bisectrixLine(lineL, lineR); // Bisectrix coefficients
+        bisLine = bisectrixLine(lineL, lineR); // Bisectrix coefficients
         ransac_project::Bisectrix msgBisectrixLine;
         msgBisectrixLine.header.stamp = ros::Time::now();
         msgBisectrixLine.header.frame_id = baseFrame;

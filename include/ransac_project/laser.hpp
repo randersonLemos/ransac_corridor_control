@@ -13,6 +13,7 @@
 
 #include "utils.hpp"
 #include "ransac2Dline.hpp"
+#include "handlePoints.hpp"
 #include "ransac_project/Bisectrix.h"
 #include "ransac_project/BorderLines.h"
 
@@ -39,9 +40,12 @@ private:
     float last_trajAngle; // angulo da ultima trajetoria estimada
     float last_winAngle;
 
+    std::vector<float> bisLine;
+
     std::string baseFrame, laserFrame;
 protected:
-    Laser () : listener(ros::Duration(10)) {}
+    Laser () : bisLine(3, 0.0),
+               listener(ros::Duration(10)) {}
     Laser (const Laser& other) {}
     Laser &operator= (const Laser& other) {}
 public:
