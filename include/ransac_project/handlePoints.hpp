@@ -8,6 +8,6 @@ private:
     static void frameTransformation(float *pt, float theta); 
     static void bisectrixFrame(float *pt, float *coeffs);
 public:
-    static char selector(float *pt, float *coeffs);
+    static char selector(float const * const pt, float *coeffs);
 };
 #endif /* HANDLEPOINTS_H */

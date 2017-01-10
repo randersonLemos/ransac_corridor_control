@@ -23,12 +23,12 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
                 listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
                 listener.transformPoint(baseFrame, laser_point, vero_point);
 
-                if(HandlePoints::selector(arr, &bisLine[0]) == 'L'){
+                if(HandlePoints::selector(arr, bisectrixCoeffs.data()) == 'L'){
                     x_left.push_back(vero_point.point.x);
                     y_left.push_back(vero_point.point.y);
 
                 }
-                else if (HandlePoints::selector(arr, &bisLine[0]) == 'R'){
+                else if (HandlePoints::selector(arr, bisectrixCoeffs.data()) == 'R'){
                     x_right.push_back(vero_point.point.x);
                     y_right.push_back(vero_point.point.y);
 
@@ -63,33 +63,36 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
     ret  = ransac_2Dline(dL, x_left.size(), (x_left.size()/2)-1, threshold, modelL, &inliersL, verbose);
     ret += ransac_2Dline(dR, x_right.size(), (x_right.size()/2)-1, threshold, modelR, &inliersR, verbose);
 
+    for(std::vector<float>::size_type i = 0; i < x_left.size(); ++i){
+        delete [] dL[i];
+    }
     delete [] dL;
+    for(std::vector<float>::size_type i = 0; i < x_right.size(); ++i){
+        delete dR[i];
+    }
     delete [] dR;
 
     if(ret == 0){
         // The arguments of the function bisectrixLine are float vectors.
         // Lets "cast" the array variable modelL/R to a float vector.
-        std::vector<float> lineL(modelL,modelL+3), lineR(modelR, modelR+3);
+        std::vector<float> leftCoeffs(modelL,modelL+3), rightCoeffs(modelR, modelR+3);
         ransac_project::BorderLines msgBorderLines;
         msgBorderLines.header.stamp = ros::Time::now();
         msgBorderLines.header.frame_id = baseFrame;
-        msgBorderLines.line_left = lineL;
-        msgBorderLines.line_right = lineR;
+        msgBorderLines.line_left = leftCoeffs;
+        msgBorderLines.line_right = rightCoeffs;
         msgBorderLines.x_left = x_left;
         msgBorderLines.y_left = y_left;
         msgBorderLines.x_right = x_right;
         msgBorderLines.y_right = y_right;
         pubLine->publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
-        bisLine = bisectrixLine(lineL, lineR); // Bisectrix coefficients
+        bisectrixCoeffs = bisectrixLine(leftCoeffs, rightCoeffs); // Bisectrix coefficients
         ransac_project::Bisectrix msgBisectrixLine;
         msgBisectrixLine.header.stamp = ros::Time::now();
         msgBisectrixLine.header.frame_id = baseFrame;
-        msgBisectrixLine.bisectrix = bisLine;
+        msgBisectrixLine.bisectrix = bisectrixCoeffs;
         pubBise->publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
-
-        last_winAngle = winAngle;
-        last_trajAngle = atan(-bisLine[0]/bisLine[1]); // slop of the estimated bisect
     }
 }
 

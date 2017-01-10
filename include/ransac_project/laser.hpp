@@ -36,22 +36,19 @@ private:
 
     float threshold, pInliers, dataWidth, winWidth, winLength;
     bool verbose;
-    float winAngle; // angulo utilizado para a divisao da janela
-    float last_trajAngle; // angulo da ultima trajetoria estimada
-    float last_winAngle;
-
-    std::vector<float> bisLine;
 
     std::string baseFrame, laserFrame;
+
+    std::vector<float> bisectrixCoeffs;
 protected:
-    Laser () : bisLine(3, 0.0),
+    Laser () : bisectrixCoeffs(3, 0.0),
                listener(ros::Duration(10)) {}
     Laser (const Laser& other) {}
     Laser &operator= (const Laser& other) {}
 public:
     static Laser* uniqueInst ();
 
-    void laserCallback(const sensor_msgs::LaserScan& msg);
+    void laserCallback (const sensor_msgs::LaserScan& msg);
 
     //void startWatchDog (nHandle &n);
 

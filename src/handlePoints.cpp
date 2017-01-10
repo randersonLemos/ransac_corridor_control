@@ -18,7 +18,7 @@ void HandlePoints::bisectrixFrame(float *pt, float *coeffs){
     pt[1] = arr1[1] + arr2[1];
 }
 
-char HandlePoints::selector(float *pt, float *coeffs){
+char HandlePoints::selector(float const * const pt, float *coeffs){
    float arr[] = {pt[0], pt[1]};
     HandlePoints::bisectrixFrame(arr, coeffs);
     if(arr[1] >= 0.0){
