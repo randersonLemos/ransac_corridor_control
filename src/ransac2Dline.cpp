@@ -115,6 +115,15 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
         return(-1);
     }
 
+    for(i = 0; nr < 2; i++){
+        free(randSet[i]);
+    }
+    free(randSet);
+    for(i = 0; i < n; i++){
+        free(conSet[i]);
+    }
+    free(conSet);
+
     return(0);
 }
 
@@ -258,4 +267,3 @@ void ols(float *l, float **U, float *W, float **V, float *b, int nRows, int nCol
     l[1] = 1.0;
     l[2] = -x[1];
 }
-

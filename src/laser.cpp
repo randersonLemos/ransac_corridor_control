@@ -23,12 +23,12 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
                 listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
                 listener.transformPoint(baseFrame, laser_point, vero_point);
 
-                if(HandlePoints::selector(arr, bisectrixCoeffs.data()) == 'L'){
+                if(HandlePoints::selector(arr, filteredBisectrixCoeffs.data()) == 'L'){
                     x_left.push_back(vero_point.point.x);
                     y_left.push_back(vero_point.point.y);
 
                 }
-                else if (HandlePoints::selector(arr, bisectrixCoeffs.data()) == 'R'){
+                else if (HandlePoints::selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
                     x_right.push_back(vero_point.point.x);
                     y_right.push_back(vero_point.point.y);
 
@@ -58,10 +58,12 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         dR[i][1] = y_right[i];
     }
 
+    /////////////////////// RANSAC ///////////////////////
     float modelL[3], modelR[3];
     int ret, inliersL, inliersR;
     ret  = ransac_2Dline(dL, x_left.size(), (x_left.size()/2)-1, threshold, modelL, &inliersL, verbose);
     ret += ransac_2Dline(dR, x_right.size(), (x_right.size()/2)-1, threshold, modelR, &inliersR, verbose);
+    //////////////////////////////////////////////////////
 
     for(std::vector<float>::size_type i = 0; i < x_left.size(); ++i){
         delete [] dL[i];
@@ -76,6 +78,20 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         // The arguments of the function bisectrixLine are float vectors.
         // Lets "cast" the array variable modelL/R to a float vector.
         std::vector<float> leftCoeffs(modelL,modelL+3), rightCoeffs(modelR, modelR+3);
+        std::vector<float> bisectrixCoeffs = utils::bisectrixLine(leftCoeffs, rightCoeffs); // Bisectrix coefficients
+
+        /////////////////////// KALMAN ///////////////////////
+        std::vector<float> dummy = utils::fromThree2TwoCoeffs(bisectrixCoeffs);
+        kalman.filter( Eigen::Map<Eigen::Matrix<float,2,1> >(dummy.data()) ) ;
+        Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
+        if(std::isnan(dummy[0])){
+            kalman.resetState();
+            dummy[0] = 0.0; dummy[1] = 0.0;
+        }
+        filteredBisectrixCoeffs = utils::fromTwo2ThreeCoeffs(dummy);
+        //////////////////////////////////////////////////////
+
+        // Publishing messages
         ransac_project::BorderLines msgBorderLines;
         msgBorderLines.header.stamp = ros::Time::now();
         msgBorderLines.header.frame_id = baseFrame;
@@ -87,15 +103,13 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         msgBorderLines.y_right = y_right;
         pubLine->publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
-        bisectrixCoeffs = bisectrixLine(leftCoeffs, rightCoeffs); // Bisectrix coefficients
         ransac_project::Bisectrix msgBisectrixLine;
         msgBisectrixLine.header.stamp = ros::Time::now();
         msgBisectrixLine.header.frame_id = baseFrame;
-        msgBisectrixLine.bisectrix = bisectrixCoeffs;
+        msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;
         pubBise->publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
     }
 }
-
 
 Laser* Laser::uniqueInst(){
     if(instance == 0){

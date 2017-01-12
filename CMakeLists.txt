@@ -9,6 +9,7 @@ find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msg
 ## System dependencies are found with CMake's conventions
 find_package(MRPT REQUIRED base hwdrivers hmtslam bayes gui core)
 
+
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and scripts declared therein get installed
 # catkin_python_setup()
@@ -49,7 +50,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include Eigen
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf watchdog
   DEPENDS message_runtime mrpt_libs
@@ -70,6 +71,7 @@ add_library(${PROJECT_NAME}
   src/svd.cpp
   src/utils.cpp
   src/laser.cpp
+  src/kalman.cpp
   src/control.cpp
   src/controlPIV.cpp
   src/handlePoints.cpp

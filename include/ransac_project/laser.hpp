@@ -1,23 +1,23 @@
 #ifndef LASER_H
 #define LASER_H
 
-
+#include <cmath>
+#include <vector>
 #include <iostream>
-
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
 
-
 #include "utils.hpp"
+#include "kalman.hpp"
 #include "ransac2Dline.hpp"
 #include "handlePoints.hpp"
 #include "ransac_project/Bisectrix.h"
 #include "ransac_project/BorderLines.h"
 
-
+#include "Eigen/Dense"
 //#include "watchdog/watchdog.hpp"
 //#define DURATION 0.5 // for WatchDog 
 
@@ -39,10 +39,18 @@ private:
 
     std::string baseFrame, laserFrame;
 
-    std::vector<float> bisectrixCoeffs;
+    std::vector<float> filteredBisectrixCoeffs;
+
+    Kalman kalman;
 protected:
-    Laser () : bisectrixCoeffs(3, 0.0),
-               listener(ros::Duration(10)) {}
+    Laser ()
+        : filteredBisectrixCoeffs(3, 0.0)
+        , listener(ros::Duration(10))
+        , kalman( 1.0
+                , 250.0
+                , (Eigen::Vector2f() << 0.0, 0.0).finished()
+                , (Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
+    { }
     Laser (const Laser& other) {}
     Laser &operator= (const Laser& other) {}
 public:

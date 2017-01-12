@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
+std::vector<float> utils::bisectrixLine(std::vector<float> l1, std::vector<float> l2){
 
     std::vector<float> bisectrix(3), V1(2), V2(2), VY(2);
     float a1, b1, c1, a2, b2, c2;
@@ -63,6 +63,23 @@ std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2){
 
     return bisectrix;
 } /* bisectrixLine */
+
+std::vector<float> utils::fromThree2TwoCoeffs(std::vector<float> _coeffs){
+    std::vector<float> coeffs(2);
+    coeffs[0] = -_coeffs[0]/(_coeffs[1] + 1e-6); // Angular coefficient
+    coeffs[1] = -_coeffs[2]/(_coeffs[1] + 1e-6); // Linear coefficient
+    return coeffs;
+}
+
+std::vector<float> utils::fromTwo2ThreeCoeffs(std::vector<float> _coeffs){
+    std::vector<float> coeffs(3);
+    coeffs[0] = -_coeffs[0];
+    coeffs[1] = 1.0;
+    coeffs[2] = -_coeffs[1];
+    return coeffs;
+}
+
+
 
 void plot::Line(mrpt::gui::CDisplayWindowPlots &win,
                const std::vector<float> &line,
