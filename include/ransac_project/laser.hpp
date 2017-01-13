@@ -34,7 +34,7 @@ private:
 
     //WatchDog *watchdog;
 
-    float threshold, pInliers, dataWidth, winWidth, winLength;
+    float threshold, winWidth, winLength;
     bool verbose;
 
     std::string baseFrame, laserFrame;
@@ -62,8 +62,6 @@ public:
 
     void setPubs (const pub &pline, const pub &pbise);
     void setThreshold (const double &x);
-    void setPinliers (const double &x);
-    void setDataWidth (const double &x);
     void setWinWidth (const double &x);
     void setWinLength (const double &x);
     void setVerbose (const bool &x);
@@ -71,8 +69,6 @@ public:
     void setLaserFrame (const std::string &lframe);
 
     const double getThreshold ();
-    const double getPinliers ();
-    const double getDataWidth ();
     const double getWinWidth ();
     const double getWinLength ();
 };

@@ -7,12 +7,9 @@ int main(int argc,char **argv){
 
     /* LOADING PARAMETERS */
     /* Parameters for the class laser, from where ransac is executed*/
-    double threshold, dataWidth, winWidth, winLength;
+    double threshold, winWidth, winLength;
     if(!nh.getParam("threshold", threshold)){
         ROS_ERROR_STREAM("Failed to get param 'threshold'"); exit(0);
-    }
-    if(!nh.getParam("dataWidth", dataWidth)){
-        ROS_ERROR_STREAM("Failed to get param 'dataWidth'"); exit(0);
     }
     if(!nh.getParam("winWidth", winWidth)){
         ROS_ERROR_STREAM("Failed to get param 'winWidth'"); exit(0);
@@ -51,7 +48,6 @@ int main(int argc,char **argv){
 
     /* Setting parameters loaded from ROS' server */
     ls->setThreshold(threshold);
-    ls->setDataWidth(dataWidth);
     ls->setWinWidth(winWidth);
     ls->setWinLength(winLength);
     ls->setVerbose(verbose);

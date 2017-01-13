@@ -142,12 +142,6 @@ void Laser::setPubs(const pub &pline, const pub &pbise){
 void Laser::setThreshold (const double &x) {
     threshold = x;
 }
-void Laser::setPinliers (const double &x) {
-    pInliers = x;
-}
-void Laser::setDataWidth (const double &x) {
-    dataWidth = x;
-}
 void Laser::setWinWidth (const double &x) {
     winWidth = x;
 }
@@ -167,12 +161,6 @@ void Laser::setLaserFrame (const std::string &lframe) {
 
 const double Laser::getThreshold () {
     return threshold;
-}
-const double Laser::getPinliers () {
-    return pInliers;
-}
-const double Laser::getDataWidth () {
-    return dataWidth;
 }
 const double Laser::getWinWidth () {
     return winWidth;

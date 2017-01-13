@@ -49,8 +49,6 @@ void test_Laser(int argc, char **argv){
 
     Laser* ls = Laser::uniqueInst();
     std::cout << ls->getThreshold() << std::endl;
-    std::cout << ls->getPinliers() << std::endl;
-    std::cout << ls->getDataWidth() << std::endl;
     std::cout << ls->getWinWidth() << std::endl;
     std::cout << ls->getWinLength() << std::endl;
 }
