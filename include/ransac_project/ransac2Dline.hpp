@@ -74,7 +74,4 @@ void estimateModel_line(float *l, float **P, int n);
 */
 void twoPointsLine(float *l, float **P);
 
-void ols(float *l, float **U, float *W, float **V, float *b, int nRows, int nCols);
-
-
 #endif /* RANSAC2DLINE_H */

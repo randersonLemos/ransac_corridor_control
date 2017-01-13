@@ -1,4 +1,3 @@
-#include "svd.hpp"
 #include "ransac2Dline.hpp"
 
 int ransac_2Dline(float **data, int n, int maxT, float threshold,
@@ -175,8 +174,6 @@ int fitModel_line(float *point, float *l, float threshold) {
 }
 
 void estimateModel_line(float *l, float **P, int n) {
-    int i;
-
     if(n<=2) {
         perror("Need at least tree points\n");
         l[0] = 0;
@@ -184,86 +181,42 @@ void estimateModel_line(float *l, float **P, int n) {
         l[2] = 0;
         return;
     }
+    
+    float x_bar = 0.0;
+    float y_bar = 0.0;
+    for(int i=0; i!=n; ++i){
+        x_bar += P[i][0];
+        y_bar += P[i][1];
+    }
+    x_bar = x_bar/n;
+    y_bar = y_bar/n;
 
-    float **Q;
-    float **V;
-    float *W;
-    float *b;
-    Q = (float **) malloc(n * sizeof(float *));
-    if(Q == NULL) { perror("out of memory\n"); exit(0); }
+    float c0 = 0.0;
+    float c1 = 0.0;
+    for(int i=0; i!=n; ++i){
+        c0 +=  (P[i][0] - x_bar)*(P[i][1] - y_bar);
+        c1 += -pow(P[i][0] - x_bar,2) + pow(P[i][1] - y_bar,2);
 
-    V = (float **) malloc(n * sizeof(float *));
-    if(V == NULL) { perror("out of memory\n"); exit(0); }
+    // Line in normal vector representation
+    float phi, r;
+    phi = 0.5*atan2(-2*c0,c1);
+    r = x_bar*cos(phi) + y_bar*sin(phi);
 
-    W = (float *) malloc(2 * sizeof(float));
-    if(W == NULL) { perror("out of memory\n"); exit(0); }
+    // Line in tradicional representation
+    float angCoeff, linCoeff;
+    angCoeff = -cos(phi)/(sin(phi) + 1e-6);
+    linCoeff = r/(sin(phi) + 1e-6);
 
-    b = (float *) malloc(n * sizeof(float));
-    if(b == NULL) { perror("out of memory\n"); exit(0); }
-
-    for(i = 0; i < n; i++)
-    {
-        Q[i] = (float *) malloc(2 * sizeof(float));
-        if(Q[i] == NULL) { perror("out of memory\n"); exit(0); }
-
-        V[i] = (float *) malloc(2 * sizeof(float));
-        if(V[i] == NULL) { perror("out of memory\n"); exit(0); }
+    // Line in representation ax + by + c = 0
+    l[0] = -angCoeff;
+    l[1] = 1.0;
+    l[2] = -linCoeff;
     }
 
-    for(i = 0; i < n; i++)
-    {
-        Q[i][0] = P[i][0];
-        Q[i][1] = 1.0;
-        b[i] = P[i][1];
-    }
-
-    // [U Sigma V] = svd(Q);
-    svdcmp(Q, n, 2, W, V);
-
-    ols(l, Q, W, V, b, n, 2);
-
-    for(i = 0; i < n; i++){
-        free(Q[i]);
-        free(V[i]);
-    }
-    free(Q);
-    free(V);
-    free(W);
-    free(b);
 }
 
 void twoPointsLine(float *l, float **P){
     l[0] = 1;
     l[1] = -((P[0][0]-P[1][0])/(P[0][1]-P[1][1]));
     l[2] = -l[0]*P[0][0] -l[1]*P[0][1];
-}
-
-void ols(float *l, float **U, float *W, float **V, float *b, int nRows, int nCols){
-    // Computing  V*inv(W)*U'*b
-
-    float tmp1[2][2]; for(int i=0; i!=2; ++i) for(int j=0; j!=2; ++j) tmp1[i][j] = 0.0;
-    for(int i=0; i!=2; ++i){ // --> V*inv(W)
-        for(int j=0; j!=2; ++j){
-            tmp1[i][j] = V[i][j] * 1.0/(W[j]);
-        }
-    }
-
-    float tmp2[2]; for(int i=0; i!=2; ++i) tmp2[i] = 0.0;
-    for(int i=0; i!=2; ++i){ // --> U'*b
-        for(int j=0; j!=nRows; ++j){
-            tmp2[i] += U[j][i] * b[j];
-        }
-    }
-
-    float x[2]; for(int i=0; i!=2; ++i) x[i] = 0.0;
-    for(int i=0; i!=2; ++i){ // --> V*inv(W)*U'*b
-        for(int j=0; j!=2; ++j){
-            x[i] += tmp1[i][j] * tmp2[j];
-        }
-    }
-
-    // From y = ax + b to ax + by + c = 0
-    l[0] = -x[0];
-    l[1] = 1.0;
-    l[2] = -x[1];
 }
