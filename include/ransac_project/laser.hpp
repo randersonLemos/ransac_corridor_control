@@ -28,9 +28,9 @@ private:
 
     static Laser *instance;
 
-    pub *pubLine, *pubBise;
+    pub borderLines_pub, bisectLine_pub;
 
-    tf::TransformListener listener;
+    const tf::TransformListener listener;
 
     //WatchDog *watchdog;
 
@@ -70,10 +70,10 @@ public:
     void setBaseLinkFrame (const std::string &bframe);
     void setLaserFrame (const std::string &lframe);
 
-    double getThreshold ();
-    double getPinliers ();
-    double getDataWidth ();
-    double getWinWidth ();
-    double getWinLength ();
+    const double getThreshold ();
+    const double getPinliers ();
+    const double getDataWidth ();
+    const double getWinWidth ();
+    const double getWinLength ();
 };
 #endif /* LASER_H */

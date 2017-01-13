@@ -58,10 +58,10 @@ int main(int argc,char **argv){
     ls->setBaseLinkFrame(BASE_FRAME_ID);
     ls->setLaserFrame(LASE_FRAME_ID);
 
-    ros::Publisher ransac_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
-    ros::Publisher bisec_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
+    ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
+    ros::Publisher bisectLine_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
 
-    ls->setPubs(ransac_pub, bisec_pub);
+    ls->setPubs(borderLines_pub, bisectLine_pub);
 
     ros::Subscriber laser_sub = n.subscribe(VERO_LASER_TOPIC, 1, &Laser::laserCallback, ls);
 

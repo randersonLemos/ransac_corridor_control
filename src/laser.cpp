@@ -101,13 +101,13 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         msgBorderLines.y_left = y_left;
         msgBorderLines.x_right = x_right;
         msgBorderLines.y_right = y_right;
-        pubLine->publish(msgBorderLines); // publishing coefficients of the left and righ lines
+        borderLines_pub.publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
         ransac_project::Bisectrix msgBisectrixLine;
         msgBisectrixLine.header.stamp = ros::Time::now();
         msgBisectrixLine.header.frame_id = baseFrame;
         msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;
-        pubBise->publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
+        bisectLine_pub.publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
     }
 }
 
@@ -136,10 +136,8 @@ Laser* Laser::uniqueInst(){
 /////////////////////////////////////////////////////////////////////
 
 void Laser::setPubs(const pub &pline, const pub &pbise){
-    pubLine = new pub();
-    pubBise = new pub();
-    *pubLine = pline;
-    *pubBise = pbise;
+    borderLines_pub = pline;
+    bisectLine_pub = pbise;
 }
 void Laser::setThreshold (const double &x) {
     threshold = x;
@@ -167,18 +165,18 @@ void Laser::setLaserFrame (const std::string &lframe) {
 }
 
 
-double Laser::getThreshold () {
+const double Laser::getThreshold () {
     return threshold;
 }
-double Laser::getPinliers () {
+const double Laser::getPinliers () {
     return pInliers;
 }
-double Laser::getDataWidth () {
+const double Laser::getDataWidth () {
     return dataWidth;
 }
-double Laser::getWinWidth () {
+const double Laser::getWinWidth () {
     return winWidth;
 }
-double Laser::getWinLength () {
+const double Laser::getWinLength () {
     return winLength;
 }
