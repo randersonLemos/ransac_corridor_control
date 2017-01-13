@@ -75,7 +75,6 @@ add_library(${PROJECT_NAME}
   src/controlPIV.cpp
   src/handlePoints.cpp
   src/ransac2Dline.cpp
-  #src/ransac_classes.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -88,14 +87,12 @@ target_link_libraries(${PROJECT_NAME}
 add_executable(nodeRansac src/nodeRansac.cpp)
 add_executable(nodeControl src/nodeControl.cpp)
 add_executable(nodeVisual src/nodeVisual.cpp)
-add_executable(test_ransac_project test/test_node.cpp)  # test node
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_project_gencpp)
 add_dependencies(nodeRansac ransac_project_gencpp ${PROJECT_NAME})
 add_dependencies(nodeControl ransac_project_gencpp ${PROJECT_NAME})
 add_dependencies(nodeVisual ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(test_ransac_project ransac_project_gencpp ${PROJECT_NAME}) # teste node
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(nodeRansac
@@ -111,12 +108,6 @@ target_link_libraries(nodeControl
 )
 
 target_link_libraries(nodeVisual
-  ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
-  ${PROJECT_NAME}
-)
-
-target_link_libraries(test_ransac_project
   ${catkin_LIBRARIES}
   ${MRPT_LIBS}
   ${PROJECT_NAME}

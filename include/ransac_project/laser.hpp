@@ -26,8 +26,6 @@ private:
     typedef ros::Publisher pub;
     typedef ros::NodeHandle nHandle;
 
-    static Laser *instance;
-
     pub borderLines_pub, bisectLine_pub;
 
     const tf::TransformListener listener;
@@ -42,34 +40,51 @@ private:
     std::vector<float> filteredBisectrixCoeffs;
 
     Kalman kalman;
+
+    static Laser *instance;
 protected:
-    Laser ()
-        : filteredBisectrixCoeffs(3, 0.0)
-        , listener(ros::Duration(10))
-        , kalman( 1.0
-                , 250.0
-                , (Eigen::Vector2f() << 0.0, 0.0).finished()
-                , (Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
+    Laser (  const pub &_borderLines_pub
+           , const pub &_bisectLine_pub
+           , const float _threshold
+           , const float _winWidth
+           , const float _winLength
+           , const bool _verbose
+           , const std::string _baseFrame
+           , const std::string _laserFrame
+          )
+           : borderLines_pub(_borderLines_pub)
+           , bisectLine_pub(_bisectLine_pub)
+           , threshold(_threshold)
+           , winWidth(_winWidth)
+           , winLength(_winLength)
+           , verbose(_verbose)
+           , baseFrame(_baseFrame)
+           , laserFrame(_laserFrame)
+           , filteredBisectrixCoeffs(3, 0.0)
+           , kalman(  1.0
+                    , 250.0
+                    , (Eigen::Vector2f() << 0.0, 0.0).finished()
+                    , (Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
+           , listener(ros::Duration(10))
     { }
     Laser (const Laser& other) {}
     Laser &operator= (const Laser& other) {}
 public:
-    static Laser* uniqueInst ();
+    static Laser* uniqueInst (  const pub &_borderLines_pub
+                              , const pub &_bisectLine_pub
+                              , const float _threshold
+                              , const float _winWidth
+                              , const float _winLength
+                              , const bool _verbose
+                              , const std::string _baseFrame
+                              , const std::string _laserFrame);
 
     void laserCallback (const sensor_msgs::LaserScan& msg);
 
     //void startWatchDog (nHandle &n);
 
-    void setPubs (const pub &pline, const pub &pbise);
-    void setThreshold (const double &x);
-    void setWinWidth (const double &x);
-    void setWinLength (const double &x);
-    void setVerbose (const bool &x);
-    void setBaseLinkFrame (const std::string &bframe);
-    void setLaserFrame (const std::string &lframe);
-
-    const double getThreshold ();
-    const double getWinWidth ();
-    const double getWinLength ();
+    double getThreshold ();
+    double getWinWidth ();
+    double getWinLength ();
 };
 #endif /* LASER_H */

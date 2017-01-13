@@ -44,20 +44,19 @@ int main(int argc,char **argv){
         ROS_ERROR_STREAM("Failed to get param '/BASE_FRAME_ID'"); exit(0);
     }
 
-    Laser *ls = Laser::uniqueInst();
-
-    /* Setting parameters loaded from ROS' server */
-    ls->setThreshold(threshold);
-    ls->setWinWidth(winWidth);
-    ls->setWinLength(winLength);
-    ls->setVerbose(verbose);
-    ls->setBaseLinkFrame(BASE_FRAME_ID);
-    ls->setLaserFrame(LASE_FRAME_ID);
-
     ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
     ros::Publisher bisectLine_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
 
-    ls->setPubs(borderLines_pub, bisectLine_pub);
+
+    Laser *ls = Laser::uniqueInst(  borderLines_pub
+                                  , bisectLine_pub
+                                  , threshold
+                                  , winWidth
+                                  , winLength
+                                  , verbose
+                                  , BASE_FRAME_ID
+                                  , LASE_FRAME_ID
+                                 );
 
     ros::Subscriber laser_sub = n.subscribe(VERO_LASER_TOPIC, 1, &Laser::laserCallback, ls);
 

@@ -111,9 +111,23 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
     }
 }
 
-Laser* Laser::uniqueInst(){
+Laser* Laser::uniqueInst(  const pub &_borderLines_pub
+                         , const pub &_bisectLine_pub
+                         , const float _threshold
+                         , const float _winWidth
+                         , const float _winLength
+                         , const bool _verbose
+                         , const std::string _baseFrame
+                         , const std::string _laserFrame){
     if(instance == 0){
-        instance = new Laser();
+        instance = new Laser(  _borderLines_pub
+                             , _bisectLine_pub
+                             , _threshold
+                             , _winWidth
+                             , _winLength
+                             , _verbose
+                             , _baseFrame
+                             , _laserFrame);
     }
     return instance;
 }
@@ -135,36 +149,12 @@ Laser* Laser::uniqueInst(){
 // Sets and gets ////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 
-void Laser::setPubs(const pub &pline, const pub &pbise){
-    borderLines_pub = pline;
-    bisectLine_pub = pbise;
-}
-void Laser::setThreshold (const double &x) {
-    threshold = x;
-}
-void Laser::setWinWidth (const double &x) {
-    winWidth = x;
-}
-void Laser::setWinLength (const double &x) {
-    winLength = x;
-}
-void Laser::setVerbose (const bool &x) {
-    verbose = x;
-}
-void Laser::setBaseLinkFrame (const std::string &bframe) {
-    baseFrame = bframe;
-}
-void Laser::setLaserFrame (const std::string &lframe) {
-    laserFrame = lframe;
-}
-
-
-const double Laser::getThreshold () {
+double Laser::getThreshold () {
     return threshold;
 }
-const double Laser::getWinWidth () {
+double Laser::getWinWidth () {
     return winWidth;
 }
-const double Laser::getWinLength () {
+double Laser::getWinLength () {
     return winLength;
 }
