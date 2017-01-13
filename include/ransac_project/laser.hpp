@@ -28,18 +28,20 @@ private:
 
     pub borderLines_pub, bisectLine_pub;
 
-    const tf::TransformListener listener;
-
     //WatchDog *watchdog;
 
-    float threshold, winWidth, winLength;
+    float threshold;
     bool verbose;
 
     std::string baseFrame, laserFrame;
 
+    HandlePoints hp;
+
     std::vector<float> filteredBisectrixCoeffs;
 
     Kalman kalman;
+
+    const tf::TransformListener listener;
 
     static Laser *instance;
 protected:
@@ -55,14 +57,14 @@ protected:
            : borderLines_pub(_borderLines_pub)
            , bisectLine_pub(_bisectLine_pub)
            , threshold(_threshold)
-           , winWidth(_winWidth)
-           , winLength(_winLength)
            , verbose(_verbose)
            , baseFrame(_baseFrame)
            , laserFrame(_laserFrame)
+           , hp(  _winWidth
+                , _winLength)
            , filteredBisectrixCoeffs(3, 0.0)
            , kalman(  1.0
-                    , 250.0
+                    , 350.0
                     , (Eigen::Vector2f() << 0.0, 0.0).finished()
                     , (Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
            , listener(ros::Duration(10))
@@ -84,7 +86,5 @@ public:
     //void startWatchDog (nHandle &n);
 
     double getThreshold ();
-    double getWinWidth ();
-    double getWinLength ();
 };
 #endif /* LASER_H */

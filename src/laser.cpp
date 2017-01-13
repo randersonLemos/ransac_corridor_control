@@ -23,12 +23,12 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
                 listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
                 listener.transformPoint(baseFrame, laser_point, vero_point);
 
-                if(HandlePoints::selector(arr, filteredBisectrixCoeffs.data()) == 'L'){
+                if(hp.selector(arr, filteredBisectrixCoeffs.data()) == 'L'){
                     x_left.push_back(vero_point.point.x);
                     y_left.push_back(vero_point.point.y);
 
                 }
-                else if (HandlePoints::selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
+                else if (hp.selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
                     x_right.push_back(vero_point.point.x);
                     y_right.push_back(vero_point.point.y);
 
@@ -151,10 +151,4 @@ Laser* Laser::uniqueInst(  const pub &_borderLines_pub
 
 double Laser::getThreshold () {
     return threshold;
-}
-double Laser::getWinWidth () {
-    return winWidth;
-}
-double Laser::getWinLength () {
-    return winLength;
 }

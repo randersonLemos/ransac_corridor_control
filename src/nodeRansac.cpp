@@ -47,7 +47,6 @@ int main(int argc,char **argv){
     ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
     ros::Publisher bisectLine_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
 
-
     Laser *ls = Laser::uniqueInst(  borderLines_pub
                                   , bisectLine_pub
                                   , threshold
