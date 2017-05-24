@@ -1,7 +1,7 @@
 #include "kalman.hpp"
 
 const Eigen::Matrix2f Kalman::I = Eigen::Matrix2f::Identity();
-const Eigen::Matrix2f Kalman::A = Eigen::Matrix2f::Identity();
+const Eigen::Matrix2f Kalman::A = (Eigen::Matrix2f() << 0.95,0.0,0.0,0.95).finished();
 const Eigen::Matrix2f Kalman::C = Eigen::Matrix2f::Identity();
 const Eigen::Matrix2f Kalman::G = Eigen::Matrix2f::Identity();
 
