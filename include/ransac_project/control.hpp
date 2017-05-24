@@ -38,7 +38,6 @@ public:
     static Control* uniqueInst ();
 
     void ransacCallback(const ransac_project::Bisectrix &biMsg);
-    void odometryCallback(const nav_msgs::Odometry &Odom_msg);
 
     void publica(const ransac_project::CarCommand &msg);
     void publica(const geometry_msgs::Twist &msg);

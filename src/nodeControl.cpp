@@ -128,7 +128,6 @@ int main(int argc, char **argv){
     signal(SIGINT, ctrlHandler);
     signal(SIGABRT, ctrlHandler);
 
-    ros::Subscriber subOdom = n.subscribe(VERO_ODOME_TOPIC, 1, &Control::odometryCallback, rc);
     ros::Subscriber subBise = n.subscribe(RANS_BISEC_TOPIC, 1, &Control::ransacCallback, rc);
 
     ros::spin();

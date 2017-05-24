@@ -2,38 +2,6 @@
 
 Control* Control::instance = 0;
 
-namespace aux{
-
-const int sizeRudder = 25;
-double Rudder[sizeRudder] = {};
-
-/* Compute the average value of the array arr with size size */
-double getAverage(double arr[], int size){
-    int i;
-    double sum = 0;
-    double avg;
-    for (i = 0; i < size; ++i){
-        sum += arr[i];
-    }
-    avg = double(sum)/size;
-    return avg;
-}
-
-/* Update array arr adding to it a new element at the initial position
- and discarding the lasted element*/
-void moveWindow(double elem,double arr[], int size){
-    for(int i=0; i<size; ++i){
-        arr[size-1-i] = arr[size -1-i-1];
-    }
-    arr[0] = elem;
-}
-}
-
-
-void Control::odometryCallback(const nav_msgs::Odometry &Odom_msg){
-    angularVel = Odom_msg.twist.twist.angular.z;
-} /* odometryCallback */
-
 void Control::ransacCallback(const ransac_project::Bisectrix &biMsg)
 {
     //watchdog->IsAlive();
@@ -56,23 +24,19 @@ void Control::ransacCallback(const ransac_project::Bisectrix &biMsg)
 
     dt = ros::Time::now().toSec();
 
-    aux::moveWindow(rudder, aux::Rudder, aux::sizeRudder);
-    //ROS_INFO_STREAM("Instantaneous rudder value: " << rudder);
-    //ROS_INFO_STREAM("Average rudder value:       " <<aux::getAverage(aux::Rudder, aux::sizeRudder));
-
     if(platform.compare("vero") == 0){
         ROS_INFO_STREAM("Command send to VERO");
         ransac_project::CarCommand msgvero;
         msgvero.speedLeft  = linearVel;
         msgvero.speedRight = linearVel;
-        msgvero.steerAngle = aux::getAverage(aux::Rudder, aux::sizeRudder);
+        msgvero.steerAngle = rudder;
         pubCommand->publish(msgvero);
     }
     else{
         ROS_INFO_STREAM("Command send to PIONEER");
         geometry_msgs::Twist msgpionner;
         msgpionner.linear.x = linearVel ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
-        msgpionner.angular.x = 0.0;      msgpionner.angular.y = 0.0; aux::getAverage(aux::Rudder, aux::sizeRudder);
+        msgpionner.angular.x = 0.0;      msgpionner.angular.y = 0.0;  msgpionner.angular.z = rudder;
         pubCommand->publish(msgpionner);
     }
 } /* ransacCallback */

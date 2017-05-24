@@ -13,14 +13,14 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
             float arr[] = {msg.ranges[i] * cos(theta), msg.ranges[i] * sin(theta)};
 
             geometry_msgs::PointStamped laser_point;
-            laser_point.header.stamp = ros::Time();
+            laser_point.header.stamp = ros::Time::now();
             laser_point.header.frame_id = msg.header.frame_id;
             laser_point.point.x = arr[0];
             laser_point.point.y = arr[1];
 
             try{
                 geometry_msgs::PointStamped vero_point;
-                listener.waitForTransform(baseFrame, laserFrame, ros::Time(), ros::Duration(2.0));
+                listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
                 listener.transformPoint(baseFrame, laser_point, vero_point);
 
                 if(hp.selector(arr, filteredBisectrixCoeffs.data()) == 'L'){
@@ -93,7 +93,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
 
         // Publishing messages
         ransac_project::BorderLines msgBorderLines;
-        msgBorderLines.header.stamp = ros::Time();
+        msgBorderLines.header.stamp = ros::Time::now();
         msgBorderLines.header.frame_id = baseFrame;
         msgBorderLines.line_left = leftCoeffs;
         msgBorderLines.line_right = rightCoeffs;
@@ -104,7 +104,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         borderLines_pub.publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
         ransac_project::Bisectrix msgBisectrixLine;
-        msgBisectrixLine.header.stamp = ros::Time();
+        msgBisectrixLine.header.stamp = ros::Time::now();
         msgBisectrixLine.header.frame_id = baseFrame;
         msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;
         bisectLine_pub.publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
