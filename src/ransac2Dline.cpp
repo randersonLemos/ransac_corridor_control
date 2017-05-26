@@ -8,7 +8,6 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
 
     *bestInliers = 0;
 
-    int T = maxT;
     int inliers = 0;
     int Tcount = 0;
     int ndata = n;
@@ -33,15 +32,12 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
         if(conSet[i] == NULL) { perror("out of memory\n"); exit(0); }
     }
 
-    float fracInliers = 0;
     float randModel[3];
     float point[2];
-    float pNoOutliers = 0;
-    float p = 0.99;
 
     srand(time(NULL)); // set rand seed
 
-    while(T > Tcount)
+    while(maxT > Tcount)
     {
         if(verbose)
             printf("\n#%d ITERATION >>>>>>>>>>>>>>>>>>>>>>>\n", Tcount);
@@ -63,7 +59,6 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
             randModel[1], randModel[2]);
 
         inliers = 0;
-        fracInliers = 0;
 
         // Evaluate distances between points and model.
         // Given a threshold, create a consensus set with the points
@@ -95,35 +90,30 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
             if(verbose)
             printf(" reestimated model: %.3f*x + %.3f*y + %.3f = 0\n",
                     bestModel[0], bestModel[1], bestModel[2]);
-
-            // Reestimate T, the number of trials to ensure we pick,
-            // with probability p, a data set free of outliers.
-            fracInliers = (float)inliers/n;
-            pNoOutliers = 1 - pow(fracInliers, 2);
-            T = log(1-p)/log(pNoOutliers);
         }
 
         Tcount++;
-        if(Tcount > maxT)
-            break;
-    }
-
-    if(bestInliers==0)
-    {
-        printf("\n### ERROR: ransac was unable to find a useful solution.\n");
-        return(-1);
     }
 
     for(i = 0; nr < 2; i++){
         free(randSet[i]);
     }
     free(randSet);
+
     for(i = 0; i < n; i++){
         free(conSet[i]);
     }
     free(conSet);
 
-    return(0);
+    if(bestInliers==0)
+    {
+        printf("\n### ERROR: ransac was unable to find a useful solution.\n");
+        return(-1);
+    }
+    else
+    {
+        return(0);
+    }
 }
 
 int randomSelect(float **sel, int nsel, float **data, int *ndata) {
@@ -153,7 +143,7 @@ int randomSelect(float **sel, int nsel, float **data, int *ndata) {
         data[k-1][1] = sel[i][1];
     }
 
-    *ndata = k;
+    //*ndata = k;
     //printf("ndata = %d\n", *ndata);
 
     return 0;

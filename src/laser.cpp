@@ -61,8 +61,8 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
     /////////////////////// RANSAC ///////////////////////
     float modelL[3], modelR[3];
     int ret, inliersL, inliersR;
-    ret  = ransac_2Dline(dL, x_left.size(), (x_left.size()/2)-1, threshold, modelL, &inliersL, verbose);
-    ret += ransac_2Dline(dR, x_right.size(), (x_right.size()/2)-1, threshold, modelR, &inliersR, verbose);
+    ret  = ransac_2Dline(dL, x_left.size(),  100, threshold, modelL, &inliersL, verbose);
+    ret += ransac_2Dline(dR, x_right.size(), 100, threshold, modelR, &inliersR, verbose);
     //////////////////////////////////////////////////////
 
     for(std::vector<float>::size_type i = 0; i < x_left.size(); ++i){
