@@ -23,7 +23,7 @@
 	Retorna 0 em caso de sucesso.
 */
 int ransac_2Dline(float **data, int n, int maxT, float threshold,
-					float *bestModel, int *bestInliers, int verbose);
+					float *bestModel, int *bestInliers, int side, int verbose);
 
 
 /* randomSelect - retira n pontos aleatorios de uma matriz

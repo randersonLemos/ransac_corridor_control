@@ -1,7 +1,7 @@
 #include "ransac2Dline.hpp"
 
 int ransac_2Dline(float **data, int n, int maxT, float threshold,
-                  float *bestModel, int *bestInliers, int verbose) {
+                  float *bestModel, int *bestInliers, int side, int verbose) {
 
     if(verbose)
         printf("Start RANSAC, n=%d, maxT=%d, t=%.2f\n\n", n, maxT, threshold);
@@ -34,6 +34,7 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
 
     float randModel[3];
     float point[2];
+    float bestScore = 0.0;
 
     srand(time(NULL)); // set rand seed
 
@@ -79,13 +80,33 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
         if(verbose)
             printf(" inliers = %d\n", inliers);
 
-        if(inliers > *bestInliers)  // Largest set of inliers.
+
+        float bias = 1.0;
+        float lin_coeff = - randModel[2]/(randModel[1]+1e-6);
+        float ang_coeff = - randModel[0]/(randModel[1]+1e-6);
+
+        if(side == 0)
+        {
+            bias  = 1.00 + 3.00*exp(-pow((lin_coeff-1.300)/(1.500),6.0));
+
+            //bias *= (1.00 + 0.75*exp(-pow((ang_coeff+0.050)/(0.100),2.0)));
+        }
+        else
+        {
+            bias  = 1.00 + 3.00*exp(-pow((lin_coeff+1.300)/(1.500),6.0));
+
+            //bias *= (1.00 + 0.75*exp(-pow((ang_coeff-0.050)/(0.100),2.0)));
+        }
+
+
+        if(inliers*bias > bestScore)  // Largest set of inliers.
         {
             if(verbose)
                 printf(" >> IT'S THE BEST MODEL !!! <<\n");
 
             estimateModel_line(bestModel, conSet, inliers);
             *bestInliers = inliers;
+            bestScore = inliers*bias;
 
             if(verbose)
             printf(" reestimated model: %.3f*x + %.3f*y + %.3f = 0\n",
