@@ -24,6 +24,7 @@ int main(int argc,char **argv){
     /* Parameters for topic names*/
     std::string RANS_LINES_TOPIC,
                 RANS_BISEC_TOPIC,
+                RANS_BISEC_PCL_TOPIC,
                 VERO_LASER_TOPIC;
     if(!nh.getParam("/RANS_LINES_TOPIC", RANS_LINES_TOPIC)){
         ROS_ERROR_STREAM("Failed to get param '/RANS_LINES_TOPIC'"); exit(0);
@@ -31,6 +32,10 @@ int main(int argc,char **argv){
     if(!nh.getParam("/RANS_BISEC_TOPIC", RANS_BISEC_TOPIC)){
         ROS_ERROR_STREAM("Failed to get param '/RANS_BISEC_TOPIC'"); exit(0);
     }
+    if(!nh.getParam("/RANS_BISEC_PCL_TOPIC", RANS_BISEC_PCL_TOPIC)){
+        ROS_ERROR_STREAM("Failed to get param '/RANS_BISEC_TOPIC'"); exit(0);
+    }
+
     if(!nh.getParam("/VERO_LASER_TOPIC", VERO_LASER_TOPIC)){
         ROS_ERROR_STREAM("Failed to get param '/VERO_LASER_TOPIC'"); exit(0);
     }
@@ -46,9 +51,11 @@ int main(int argc,char **argv){
 
     ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
     ros::Publisher bisectLine_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
+    ros::Publisher bisectLine_pcl_pub  = n.advertise<sensor_msgs::PointCloud2>(RANS_BISEC_PCL_TOPIC, 1);
 
     Laser *ls = Laser::uniqueInst(  borderLines_pub
                                   , bisectLine_pub
+                                  , bisectLine_pcl_pub
                                   , threshold
                                   , winWidth
                                   , winLength

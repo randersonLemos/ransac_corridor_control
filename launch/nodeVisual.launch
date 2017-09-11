@@ -1,0 +1,3 @@
+<launch>
+  <node pkg = "ransac_project" type = "nodeVisual" name = "nodeVisual" />
+</launch>

@@ -2,6 +2,22 @@
 
 Laser *Laser::instance = 0;
 
+void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line){
+
+    float a, b, c;
+    a = coeffs[0];
+    b = coeffs[1];
+    c = coeffs[2];
+
+    for(int i = 0; i < 20; ++i){
+        pcl::PointXYZ p;
+        p.x = i/2.0;
+        p.y = -(c+a*p.x)/b;
+        p.z = 0.0;
+        line.push_back(p);
+    }
+}
+
 void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
 //    watchdog->IsAlive();
 
@@ -91,9 +107,24 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         filteredBisectrixCoeffs = utils::fromTwo2ThreeCoeffs(dummy);
         //////////////////////////////////////////////////////
 
+        // Publish a Pointcloud message from the line
+        ros::Time timestamp = ros::Time::now();
+
+        pcl::PointCloud<pcl::PointXYZ> line;
+
+        addLineToPointcloud(filteredBisectrixCoeffs, line);
+        addLineToPointcloud(leftCoeffs, line);
+        addLineToPointcloud(rightCoeffs, line);
+
+        sensor_msgs::PointCloud2 line_msg;
+        pcl::toROSMsg(line, line_msg);
+        line_msg.header.stamp = timestamp;
+        line_msg.header.frame_id = baseFrame;
+        bisectLine_pcl_pub.publish(line_msg);
+
         // Publishing messages
         ransac_project::BorderLines msgBorderLines;
-        msgBorderLines.header.stamp = ros::Time::now();
+        msgBorderLines.header.stamp = timestamp;
         msgBorderLines.header.frame_id = baseFrame;
         msgBorderLines.line_left = leftCoeffs;
         msgBorderLines.line_right = rightCoeffs;
@@ -104,7 +135,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         borderLines_pub.publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
         ransac_project::Bisectrix msgBisectrixLine;
-        msgBisectrixLine.header.stamp = ros::Time::now();
+        msgBisectrixLine.header.stamp = timestamp;
         msgBisectrixLine.header.frame_id = baseFrame;
         msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;
         bisectLine_pub.publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
@@ -113,6 +144,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
 
 Laser* Laser::uniqueInst(  const pub &_borderLines_pub
                          , const pub &_bisectLine_pub
+                         , const pub &_bisectLine_pcl_pub
                          , const float _threshold
                          , const float _winWidth
                          , const float _winLength
@@ -122,6 +154,7 @@ Laser* Laser::uniqueInst(  const pub &_borderLines_pub
     if(instance == 0){
         instance = new Laser(  _borderLines_pub
                              , _bisectLine_pub
+                             , _bisectLine_pcl_pub
                              , _threshold
                              , _winWidth
                              , _winLength

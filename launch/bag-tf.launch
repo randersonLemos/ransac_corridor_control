@@ -1,0 +1,49 @@
+<launch>
+  <!--ROSBAG-->
+  <arg name="path" default="/home/vero/ran/catkin_ws/bags/"/>
+  <!--arg name="file" default="2013-12-03-10-52-08"/-->
+  <arg name="file" default="output"/>
+  <!--The laser stream data from the bagfiles is published via
+      the topics /scan or /log_orca. The former is publised by
+      the bagfiles recorded at CTI and the latter is published by the
+      bagfiles recorded at SANTA ELISA farm. Ransac waits the laser
+      stream data from the topic /sick_scan, and so we need to
+      remap the name of the original topics to \sick_scan.
+      So let's do it -->
+  <!--arg name="topic1" default="/scan" /--> <!--CTI bagfiles -->
+  <arg name="topic1" default="/log_orca" /> <!--SANTA ELISA farm-->
+  <arg name="topic2" default="/sick_scan" />
+  <arg name="remap"  default="$(arg topic1):=$(arg topic2)" />
+
+  <!--This is to appropriete set the use or not of simulated time--> 
+  <arg name="rate_time" default="1.0" />
+  <!-- For the bagfiles of SANTA ELISA farm a good time to start is 80s-->
+  <arg name="start_time" default="315.0"/>
+  <!-- For the bagfiles of SANTA ELISA farm a good duration time is 100s-->
+  <arg name="duration_time" default="105.0"/>
+  <arg name="sim_time" />
+  <param name="use_sim_time" value="$(arg sim_time)" />
+  <group if="$(arg sim_time)" >
+    <!--Rosbag with clock argument. Let's use simulated time-->
+    <node pkg="rosbag" type="play" name="player" 
+      args="--clock -r $(arg rate_time) -s $(arg start_time) -u $(arg duration_time) -l $(arg path)$(arg file).bag $(arg remap)" 
+    />
+  </group>
+  <group unless="$(arg sim_time)" >
+    <!--Rosbag without clock argument. To not use simualted time-->
+    <node pkg="rosbag" type="play" name="player" 
+      args="-r $(arg rate_time) -s $(arg start_time) -l $(arg path)$(arg file).bag $(arg remap)" 
+    />
+  </group>
+
+  <!--TF-->
+  <!--The bagfiles have also different names frames for the laser sensor. VERO
+      and the bagfiles recorded at CTI have the frames named as "laser".
+      The bagfiles from SANTA ELISE farm has the frame names as "hokuyo"-->
+  <arg name="parent_id" default="base_link"/>
+  <!--arg name="child_id" default="hokuyo"/-->
+  <arg name="child_id" default="laser"/>
+  <node pkg="tf" type="static_transform_publisher" name="tf_broadcaster" 
+    args="0.2 0 0.15 0 0 0 $(arg parent_id) $(arg child_id) 100"
+  />
+</launch>

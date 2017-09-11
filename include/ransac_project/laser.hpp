@@ -18,6 +18,12 @@
 #include "ransac_project/BorderLines.h"
 
 #include "Eigen/Dense"
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
+
+#include <sensor_msgs/PointCloud2.h>
 //#include "watchdog/watchdog.hpp"
 //#define DURATION 0.5 // for WatchDog 
 
@@ -26,7 +32,7 @@ private:
     typedef ros::Publisher pub;
     typedef ros::NodeHandle nHandle;
 
-    pub borderLines_pub, bisectLine_pub;
+    pub borderLines_pub, bisectLine_pub, bisectLine_pcl_pub;
 
     //WatchDog *watchdog;
 
@@ -47,6 +53,7 @@ private:
 protected:
     Laser (  const pub &_borderLines_pub
            , const pub &_bisectLine_pub
+           , const pub &_bisectLine_pcl_pub
            , const float _threshold
            , const float _winWidth
            , const float _winLength
@@ -56,6 +63,7 @@ protected:
           )
            : borderLines_pub(_borderLines_pub)
            , bisectLine_pub(_bisectLine_pub)
+           , bisectLine_pcl_pub(_bisectLine_pcl_pub)
            , threshold(_threshold)
            , verbose(_verbose)
            , baseFrame(_baseFrame)
@@ -74,6 +82,7 @@ protected:
 public:
     static Laser* uniqueInst (  const pub &_borderLines_pub
                               , const pub &_bisectLine_pub
+                              , const pub &_bisectLine_pcl_pub
                               , const float _threshold
                               , const float _winWidth
                               , const float _winLength

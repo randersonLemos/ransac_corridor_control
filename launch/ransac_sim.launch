@@ -19,6 +19,4 @@
 		<param name = "KVT" value = "0.1" />
 	</node-->
 
-	<node pkg = "ransac_project" type = "dataplot" name = "dataplot" />
-
 </launch>

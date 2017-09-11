@@ -4,10 +4,10 @@ project(ransac_project)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf watchdog message_generation)
+find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf watchdog message_generation pcl_ros)
 
 ## System dependencies are found with CMake's conventions
-find_package(MRPT REQUIRED base hwdrivers hmtslam bayes gui core)
+find_package(MRPT REQUIRED gui)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
