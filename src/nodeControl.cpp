@@ -23,7 +23,7 @@ void ctrlHandler(int /*x*/){
                                      // to ensures platform stops
 
         if(rc->getPlatform().compare("vero") == 0){
-            ROS_INFO_STREAM("Command send to VERO");
+            ROS_DEBUG_STREAM("Command send to VERO");
             ransac_project::CarCommand msgvero;
             msgvero.speedLeft  = 0.0;
             msgvero.speedRight = 0.0;
@@ -32,7 +32,7 @@ void ctrlHandler(int /*x*/){
 
         }
         else{
-            ROS_INFO_STREAM("Command send to PIONEER");
+            ROS_DEBUG_STREAM("Command send to PIONEER");
             geometry_msgs::Twist msgpionner;
             msgpionner.linear.x = 0.0 ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
             msgpionner.angular.x = 0.0; msgpionner.angular.y = 0.0; msgpionner.angular.z = 0.0;

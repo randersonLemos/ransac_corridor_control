@@ -4,7 +4,7 @@ project(ransac_project)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf watchdog message_generation pcl_ros)
+find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf message_generation pcl_ros)
 
 ## System dependencies are found with CMake's conventions
 find_package(MRPT REQUIRED gui)
@@ -52,7 +52,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include Eigen
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf watchdog
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf
   DEPENDS message_runtime mrpt_libs
 )
 
