@@ -71,8 +71,8 @@ protected:
            , hp(  _winWidth
                 , _winLength)
            , filteredBisectrixCoeffs(3, 0.0)
-           , kalman(  1.0
-                    , 350.0
+           , kalman(  1.0 
+                    , 100.0 // PARAMETRIZAR!!!
                     , (Eigen::Vector2f() << 0.0, 0.0).finished()
                     , (Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
            , listener(ros::Duration(10))

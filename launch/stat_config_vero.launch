@@ -12,7 +12,7 @@
 
   <!--TF'S NAMES-->
   <!--VERO frame name-->
-  <param name="LASE_FRAME_ID" value="laser"/>
+  <param name="LASE_FRAME_ID" value="hokuyo_link"/>
   <!--Bagfile frame name -->
   <!--param name="LASE_FRAME_ID" value="hokuyo"/-->
   <param name="BASE_FRAME_ID" value="base_link"/>

@@ -105,6 +105,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
             dummy[0] = 0.0; dummy[1] = 0.0;
         }
         filteredBisectrixCoeffs = utils::fromTwo2ThreeCoeffs(dummy);
+        // filteredBisectrixCoeffs = bisectrixCoeffs;
         //////////////////////////////////////////////////////
 
         // Publish a Pointcloud message from the line
