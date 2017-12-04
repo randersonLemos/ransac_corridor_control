@@ -4,11 +4,7 @@ project(ransac_project)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf message_generation pcl_ros)
-
-## System dependencies are found with CMake's conventions
-find_package(MRPT REQUIRED gui)
-
+find_package(catkin REQUIRED COMPONENTS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf message_generation pcl_ros)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and scripts declared therein get installed
@@ -53,7 +49,7 @@ catkin_package(
   INCLUDE_DIRS include Eigen
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf
-  DEPENDS message_runtime mrpt_libs
+  DEPENDS message_runtime 
 )
 
 ###########
@@ -64,6 +60,7 @@ catkin_package(
 include_directories(include
   ${catkin_INCLUDE_DIRS}
   include/${PROJECT_NAME}
+
 )
 
 ## Declare a cpp library
@@ -83,36 +80,24 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 ## Declare a cpp executable
-#add_executable(ransac src/ransac.cpp)
 add_executable(nodeRansac src/nodeRansac.cpp)
 add_executable(nodeControl src/nodeControl.cpp)
-add_executable(nodeVisual src/nodeVisual.cpp)
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_project_gencpp)
 add_dependencies(nodeRansac ransac_project_gencpp ${PROJECT_NAME})
 add_dependencies(nodeControl ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(nodeVisual ransac_project_gencpp ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(nodeRansac
   ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
 
 target_link_libraries(nodeControl
   ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
   ${PROJECT_NAME}
 )
-
-target_link_libraries(nodeVisual
-  ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
-  ${PROJECT_NAME}
-)
-
 
 #############
 ## Install ##

@@ -78,28 +78,3 @@ std::vector<float> utils::fromTwo2ThreeCoeffs(std::vector<float> _coeffs){
     coeffs[2] = -_coeffs[1];
     return coeffs;
 }
-
-
-
-void plot::Line(mrpt::gui::CDisplayWindowPlots &win,
-               const std::vector<float> &line,
-               const std::string &lineFormat,
-               const std::string &plotName){
-    std::vector<double> lx(21), ly(21);
-    for(int i=0; i<21; i++) {
-        lx[i] = i-10;
-        ly[i] = (-lx[i]*line[0] - line[2])/line[1];
-    }
-
-    win.plot(lx, ly, lineFormat, plotName);
-    return;
-} /* plotLine */
-
-void plot::Points(mrpt::gui::CDisplayWindowPlots &win,
-                  const std::vector<float> &x,
-                  const std::vector<float> &y,
-                  const std::string &lineFormat,
-                  const std::string &plotName){
-    win.plot(x, y, lineFormat, plotName);
-    return;
-} /* plotPoints */

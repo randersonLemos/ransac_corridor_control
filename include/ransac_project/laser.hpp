@@ -24,8 +24,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <sensor_msgs/PointCloud2.h>
-//#include "watchdog/watchdog.hpp"
-//#define DURATION 0.5 // for WatchDog 
 
 class Laser{
 private:

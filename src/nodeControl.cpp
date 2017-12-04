@@ -5,14 +5,17 @@
 * parametros:
 *     lenght:             distancia entre eixos do VERO
 *     v_linear:           define a velocidade linear do VERO
-*     platform:          define para que carro o controle sera efetuado
+*     platform:           define para que carro o controle sera efetuado
 *     KPT, KIT, KRT, KVT: parametros do controlador
 *
-* ransacCallback: Função que recebe os coeficientes (a, b, c) da reta bissetriz representada na forma ax + by +c = 0
-*      Entrada:
-*           mensagem ransac_project::Bisectrix que define que contem os coeficientes da reta bisetriz
-*      Saidas:
-*           publica a mensagen ransac_project::CarCommand, que envia o comando para o VERO sendo ele uma velocidade linear e um angulo de rotaçao ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer sendo ele uma velocidade linear e uma angular.
+* ransacCallback: Função que recebe os coeficientes (a, b, c) da reta 
+*bissetriz representada na forma ax + by +c = 0
+*     Entrada: mensagem ransac_project::Bisectrix que define que contem 
+*os coeficientes da reta bisetriz
+*     Saidas: publica a mensagen ransac_project::CarCommand, que envia o 
+*comando para o VERO sendo ele uma velocidade linear e um angulo de rotaçao 
+*ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer 
+*sendo ele uma velocidade linear e uma angular.
 */
 
 void ctrlHandler(int /*x*/){
@@ -34,8 +37,12 @@ void ctrlHandler(int /*x*/){
         else{
             ROS_DEBUG_STREAM("Command send to PIONEER");
             geometry_msgs::Twist msgpionner;
-            msgpionner.linear.x = 0.0 ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
-            msgpionner.angular.x = 0.0; msgpionner.angular.y = 0.0; msgpionner.angular.z = 0.0;
+            msgpionner.linear.x = 0.0 ;
+	    msgpionner.linear.y = 0.0;  
+            msgpionner.linear.z = 0.0;
+            msgpionner.angular.x = 0.0;
+            msgpionner.angular.y = 0.0;
+            msgpionner.angular.z = 0.0;
             rc->publica(msgpionner);
         }
     }
