@@ -6,7 +6,7 @@ int main(int argc,char **argv){
     ros::NodeHandle nh("~");
 
     /* LOADING PARAMETERS */
-    /* Parameters for the class laser, from where ransac is executed*/
+    /* Parameters for the class laser from where ransac is executed*/
     double threshold, winWidth, winLength;
     if(!nh.getParam("threshold", threshold)){
         ROS_ERROR_STREAM("Failed to get param 'threshold'"); exit(0);
@@ -35,7 +35,6 @@ int main(int argc,char **argv){
     if(!nh.getParam("/RANS_BISEC_PCL_TOPIC", RANS_BISEC_PCL_TOPIC)){
         ROS_ERROR_STREAM("Failed to get param '/RANS_BISEC_TOPIC'"); exit(0);
     }
-
     if(!nh.getParam("/VERO_LASER_TOPIC", VERO_LASER_TOPIC)){
         ROS_ERROR_STREAM("Failed to get param '/VERO_LASER_TOPIC'"); exit(0);
     }
@@ -50,23 +49,21 @@ int main(int argc,char **argv){
     }
 
     ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
-    ros::Publisher bisectLine_pub  = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
-    ros::Publisher bisectLine_pcl_pub  = n.advertise<sensor_msgs::PointCloud2>(RANS_BISEC_PCL_TOPIC, 1);
+    ros::Publisher bisectLine_pub = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
+    ros::Publisher bisectLine_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(RANS_BISEC_PCL_TOPIC, 1);
 
-    Laser *ls = Laser::uniqueInst(  borderLines_pub
-                                  , bisectLine_pub
-                                  , bisectLine_pcl_pub
-                                  , threshold
-                                  , winWidth
-                                  , winLength
-                                  , verbose
-                                  , BASE_FRAME_ID
-                                  , LASE_FRAME_ID
+    Laser *ls = Laser::uniqueInst( borderLines_pub
+                                  ,bisectLine_pub
+                                  ,bisectLine_pcl_pub
+                                  ,threshold
+                                  ,winWidth
+                                  ,winLength
+                                  ,verbose
+                                  ,BASE_FRAME_ID
+                                  ,LASE_FRAME_ID
                                  );
 
     ros::Subscriber laser_sub = n.subscribe(VERO_LASER_TOPIC, 1, &Laser::laserCallback, ls);
-
-    //ls->startWatchDog(n);
 
     ros::spin();
 

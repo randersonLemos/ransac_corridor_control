@@ -9,7 +9,7 @@ void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXY
     b = coeffs[1];
     c = coeffs[2];
 
-    for(int i = 0; i < 20; ++i){
+    for(int i = 0; i < 30; ++i){
         pcl::PointXYZ p;
         p.x = i/2.0;
         p.y = -(c+a*p.x)/b;
@@ -19,7 +19,6 @@ void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXY
 }
 
 void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
-//    watchdog->IsAlive();
 
     std::vector<float> x_left, x_right, y_left, y_right; //vars to hold points inside windown of interest
 
@@ -105,7 +104,6 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
             dummy[0] = 0.0; dummy[1] = 0.0;
         }
         filteredBisectrixCoeffs = utils::fromTwo2ThreeCoeffs(dummy);
-        // filteredBisectrixCoeffs = bisectrixCoeffs;
         //////////////////////////////////////////////////////
 
         // Publish a Pointcloud message from the line
@@ -143,41 +141,28 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
     }
 }
 
-Laser* Laser::uniqueInst(  const pub &_borderLines_pub
-                         , const pub &_bisectLine_pub
-                         , const pub &_bisectLine_pcl_pub
-                         , const float _threshold
-                         , const float _winWidth
-                         , const float _winLength
-                         , const bool _verbose
-                         , const std::string _baseFrame
-                         , const std::string _laserFrame){
+Laser* Laser::uniqueInst( const pub &_borderLines_pub
+                         ,const pub &_bisectLine_pub
+                         ,const pub &_bisectLine_pcl_pub
+                         ,const float _threshold
+                         ,const float _winWidth
+                         ,const float _winLength
+                         ,const bool _verbose
+                         ,const std::string _baseFrame
+                         ,const std::string _laserFrame){
     if(instance == 0){
-        instance = new Laser(  _borderLines_pub
-                             , _bisectLine_pub
-                             , _bisectLine_pcl_pub
-                             , _threshold
-                             , _winWidth
-                             , _winLength
-                             , _verbose
-                             , _baseFrame
-                             , _laserFrame);
+        instance = new Laser( _borderLines_pub
+                             ,_bisectLine_pub
+                             ,_bisectLine_pcl_pub
+                             ,_threshold
+                             ,_winWidth
+                             ,_winLength
+                             ,_verbose
+                             ,_baseFrame
+                             ,_laserFrame);
     }
     return instance;
 }
-
-//void Laser::startWatchDog(nHandle &n){
-//    watchdog = new WatchDog(n);
-//
-//    bool print = true;
-//    while (!ros::Time::now().toSec()) {
-//        if(print) ROS_INFO("Probably simulated time on. Waiting for time...");
-//        print = false;
-//    }
-//
-//    watchdog->StartTimer(DURATION);
-//    ROS_INFO("watchdog started");
-//}
 
 /////////////////////////////////////////////////////////////////////
 // Sets and gets ////////////////////////////////////////////////////

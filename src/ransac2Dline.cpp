@@ -48,15 +48,15 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
             break;
 
         if(verbose)
-            printf(" selected points: (%.3f, %.3f) and (%.3f, %.3f)\n", 
-                    randSet[0][0], randSet[0][1], randSet[1][0], 
+            printf(" selected points: (%.3f, %.3f) and (%.3f, %.3f)\n",
+                    randSet[0][0], randSet[0][1], randSet[1][0],
                     randSet[1][1]);
 
         // Fit model to the random selection of data points
         twoPointsLine(randModel, randSet);
 
         if(verbose)
-            printf(" rand model: %.3f*x + %.3f*y + %.3f = 0\n", randModel[0], 
+            printf(" rand model: %.3f*x + %.3f*y + %.3f = 0\n", randModel[0],
             randModel[1], randModel[2]);
 
         inliers = 0;
@@ -87,15 +87,19 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
 
         if(side == 0)
         {
-            bias  = 1.00 + 3.00*exp(-pow((lin_coeff-1.300)/(1.500),6.0));
+            //bias  = 1.00 + 3.00*exp(-pow((lin_coeff-1.300)/(1.500),6.0));
 
             //bias *= (1.00 + 0.75*exp(-pow((ang_coeff+0.050)/(0.100),2.0)));
+
+            //bias *= (1.00 + 0.50*exp(-pow((ang_coeff+0.050)/(0.100),2.0)));
         }
         else
         {
-            bias  = 1.00 + 3.00*exp(-pow((lin_coeff+1.300)/(1.500),6.0));
+            //bias  = 1.00 + 3.00*exp(-pow((lin_coeff+1.300)/(1.500),6.0));
 
             //bias *= (1.00 + 0.75*exp(-pow((ang_coeff-0.050)/(0.100),2.0)));
+
+            //bias *= (1.00 + 0.50*exp(-pow((ang_coeff-0.050)/(0.100),2.0)));
         }
 
 
@@ -145,7 +149,7 @@ int randomSelect(float **sel, int nsel, float **data, int *ndata) {
 
     if(nsel > *ndata)
     {
-        printf("randomSelect: unable to select %d points from dataset[%d]\n", 
+        printf("randomSelect: unable to select %d points from dataset[%d]\n",
                 nsel, *ndata);
         return -1;
     }
@@ -159,7 +163,7 @@ int randomSelect(float **sel, int nsel, float **data, int *ndata) {
 
         data[r][0] = data[k-1][0];
         data[r][1] = data[k-1][1];
-        
+
         data[k-1][0] = sel[i][0];
         data[k-1][1] = sel[i][1];
     }
@@ -192,7 +196,7 @@ void estimateModel_line(float *l, float **P, int n) {
         l[2] = 0;
         return;
     }
-    
+
     float x_bar = 0.0;
     float y_bar = 0.0;
     for(int i=0; i!=n; ++i){
@@ -223,7 +227,6 @@ void estimateModel_line(float *l, float **P, int n) {
     l[1] = 1.0;
     l[2] = -linCoeff;
     }
-
 }
 
 void twoPointsLine(float *l, float **P){

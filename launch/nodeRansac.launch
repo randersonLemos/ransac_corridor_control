@@ -1,13 +1,12 @@
 <launch>
-<!-- <group ns="vero"> -->
+
 	<include file="$(find ransac_project)/launch/stat_config_bags.launch"/>
+
 	<node pkg = "ransac_project" type = "nodeRansac" name = "nodeRansac" output="screen">
 		<param name = "verbose" value = "false" />
 		<param name = "winWidth" value = "50.0" />
-		<param name = "winLength" value = "10.0" />
-		<param name = "threshold" value = "0.4" />
+		<param name = "winLength" value = "25.0" />
+		<param name = "threshold" value = "2.5" />
 	</node>
 
-<!-- </group> -->
-	
 </launch>
