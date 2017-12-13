@@ -2,7 +2,7 @@
 
 Control* Control::instance = 0;
 
-void Control::ransacCallback(const ransac_project::Bisectrix &biMsg)
+void Control::ransacCallback(const ransac_corridor_control::Bisectrix &biMsg)
 {
     //watchdog->IsAlive();
 
@@ -26,7 +26,7 @@ void Control::ransacCallback(const ransac_project::Bisectrix &biMsg)
 
     if(platform.compare("vero") == 0){
         ROS_INFO_STREAM("Command send to VERO");
-        ransac_project::CarCommand msgvero;
+        ransac_corridor_control::CarCommand msgvero;
         msgvero.speedLeft  = linearVel;
         msgvero.speedRight = linearVel;
         msgvero.steerAngle = rudder;
@@ -62,7 +62,7 @@ void Control::configTime(){
     dt = startTime.toSec();
 }
 
-void Control::publica(const ransac_project::CarCommand &msg){
+void Control::publica(const ransac_corridor_control::CarCommand &msg){
     pubCommand->publish(msg);
 }
 void Control::publica(const geometry_msgs::Twist &msg){

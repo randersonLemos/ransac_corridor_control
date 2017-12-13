@@ -48,8 +48,8 @@ int main(int argc,char **argv){
         ROS_ERROR_STREAM("Failed to get param '/BASE_FRAME_ID'"); exit(0);
     }
 
-    ros::Publisher borderLines_pub = n.advertise<ransac_project::BorderLines>(RANS_LINES_TOPIC, 1);
-    ros::Publisher bisectLine_pub = n.advertise<ransac_project::Bisectrix>(RANS_BISEC_TOPIC, 1);
+    ros::Publisher borderLines_pub = n.advertise<ransac_corridor_control::BorderLines>(RANS_LINES_TOPIC, 1);
+    ros::Publisher bisectLine_pub = n.advertise<ransac_corridor_control::Bisectrix>(RANS_BISEC_TOPIC, 1);
     ros::Publisher bisectLine_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(RANS_BISEC_PCL_TOPIC, 1);
 
     Laser *ls = Laser::uniqueInst( borderLines_pub

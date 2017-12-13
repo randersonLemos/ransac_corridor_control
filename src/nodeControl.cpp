@@ -8,13 +8,13 @@
 *     platform:           define para que carro o controle sera efetuado
 *     KPT, KIT, KRT, KVT: parametros do controlador
 *
-* ransacCallback: Função que recebe os coeficientes (a, b, c) da reta 
+* ransacCallback: Função que recebe os coeficientes (a, b, c) da reta
 *bissetriz representada na forma ax + by +c = 0
-*     Entrada: mensagem ransac_project::Bisectrix que define que contem 
+*     Entrada: mensagem ransac_corridor_control::Bisectrix que define que contem
 *os coeficientes da reta bisetriz
-*     Saidas: publica a mensagen ransac_project::CarCommand, que envia o 
-*comando para o VERO sendo ele uma velocidade linear e um angulo de rotaçao 
-*ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer 
+*     Saidas: publica a mensagen ransac_corridor_control::CarCommand, que envia o
+*comando para o VERO sendo ele uma velocidade linear e um angulo de rotaçao
+*ou a mensagem geometry_msgs::Twist que envia o comando para o Pioneer
 *sendo ele uma velocidade linear e uma angular.
 */
 
@@ -27,7 +27,7 @@ void ctrlHandler(int /*x*/){
 
         if(rc->getPlatform().compare("vero") == 0){
             ROS_DEBUG_STREAM("Command send to VERO");
-            ransac_project::CarCommand msgvero;
+            ransac_corridor_control::CarCommand msgvero;
             msgvero.speedLeft  = 0.0;
             msgvero.speedRight = 0.0;
             msgvero.steerAngle = 0,0;
@@ -38,7 +38,7 @@ void ctrlHandler(int /*x*/){
             ROS_DEBUG_STREAM("Command send to PIONEER");
             geometry_msgs::Twist msgpionner;
             msgpionner.linear.x = 0.0 ;
-	    msgpionner.linear.y = 0.0;  
+	    msgpionner.linear.y = 0.0;
             msgpionner.linear.z = 0.0;
             msgpionner.angular.x = 0.0;
             msgpionner.angular.y = 0.0;
@@ -120,7 +120,7 @@ int main(int argc, char **argv){
 
     ros::Publisher pub;
     if(platform.compare("vero") == 0){
-        pub = n.advertise<ransac_project::CarCommand>(VERO_COMMA_TOPIC, 1);
+        pub = n.advertise<ransac_corridor_control::CarCommand>(VERO_COMMA_TOPIC, 1);
     }
     else if(platform.compare("pioneer") == 0){
         pub =  n.advertise<geometry_msgs::Twist>(PION_COMMA_TOPIC, 1);

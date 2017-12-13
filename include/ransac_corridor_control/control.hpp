@@ -6,9 +6,9 @@
 #include <geometry_msgs/Twist.h>
 
 #include "controlPIV.hpp"
-#include "ransac_project/Bisectrix.h"
-#include "ransac_project/CarCommand.h"
-#include "ransac_project/BorderLines.h"
+#include "ransac_corridor_control/Bisectrix.h"
+#include "ransac_corridor_control/CarCommand.h"
+#include "ransac_corridor_control/BorderLines.h"
 
 
 
@@ -37,9 +37,9 @@ protected:
 public:
     static Control* uniqueInst ();
 
-    void ransacCallback(const ransac_project::Bisectrix &biMsg);
+    void ransacCallback(const ransac_corridor_control::Bisectrix &biMsg);
 
-    void publica(const ransac_project::CarCommand &msg);
+    void publica(const ransac_corridor_control::CarCommand &msg);
     void publica(const geometry_msgs::Twist &msg);
 
     void configTime();

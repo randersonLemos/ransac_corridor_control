@@ -122,7 +122,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         bisectLine_pcl_pub.publish(line_msg);
 
         // Publishing messages
-        ransac_project::BorderLines msgBorderLines;
+        ransac_corridor_control::BorderLines msgBorderLines;
         msgBorderLines.header.stamp = timestamp;
         msgBorderLines.header.frame_id = baseFrame;
         msgBorderLines.line_left = leftCoeffs;
@@ -133,7 +133,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
         msgBorderLines.y_right = y_right;
         borderLines_pub.publish(msgBorderLines); // publishing coefficients of the left and righ lines
 
-        ransac_project::Bisectrix msgBisectrixLine;
+        ransac_corridor_control::Bisectrix msgBisectrixLine;
         msgBisectrixLine.header.stamp = timestamp;
         msgBisectrixLine.header.frame_id = baseFrame;
         msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;

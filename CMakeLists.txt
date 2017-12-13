@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ransac_project)
+project(ransac_corridor_control)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -49,7 +49,7 @@ catkin_package(
   INCLUDE_DIRS include Eigen
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf
-  DEPENDS message_runtime 
+  DEPENDS message_runtime
 )
 
 ###########
@@ -76,7 +76,6 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
 )
 
 ## Declare a cpp executable
@@ -84,9 +83,9 @@ add_executable(nodeRansac src/nodeRansac.cpp)
 add_executable(nodeControl src/nodeControl.cpp)
 
 ## Add dependencies to the executable
-add_dependencies(${PROJECT_NAME} ransac_project_gencpp)
-add_dependencies(nodeRansac ransac_project_gencpp ${PROJECT_NAME})
-add_dependencies(nodeControl ransac_project_gencpp ${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME} ransac_corridor_control_gencpp)
+add_dependencies(nodeRansac ransac_corridor_control_gencpp ${PROJECT_NAME})
+add_dependencies(nodeControl ransac_corridor_control_gencpp ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(nodeRansac
