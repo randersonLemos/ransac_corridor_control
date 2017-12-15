@@ -2,25 +2,36 @@
 
 Laser *Laser::instance = 0;
 
-void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line){
-
-    float a, b, c;
-    a = coeffs[0];
-    b = coeffs[1];
-    c = coeffs[2];
-
-    for(int i = 0; i < 30; ++i){
-        pcl::PointXYZ p;
-        p.x = i/2.0;
-        p.y = -(c+a*p.x)/b;
-        p.z = 0.0;
-        line.push_back(p);
+Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
+                              ,const ros::Publisher &_lines_pcl_pub
+                              ,const float _threshold
+                              ,const float _winWidth
+                              ,const float _winLength
+                              ,const float _model_variance
+                              ,const float _measure_variance
+                              ,const bool _verbose
+                              ,const std::string _base_frame_tf
+                              ,const std::string _laser_frame_id
+                             ){
+    if(instance == 0){
+        instance = new Laser( _bisector_line_pub
+                             ,_lines_pcl_pub
+                             ,_threshold
+                             ,_winWidth
+                             ,_winLength
+                             ,_model_variance
+                             ,_measure_variance
+                             ,_verbose
+                             ,_base_frame_tf
+                             ,_laser_frame_id
+                            );
     }
+    return instance;
 }
 
-void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
+void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
-    std::vector<float> x_left, x_right, y_left, y_right; //vars to hold points inside windown of interest
+    std::vector<float> x_left, x_right, y_left, y_right; //vars to hold points inside window of interest
 
     for(unsigned int i = 0; i < msg.ranges.size(); ++i){
         if(msg.ranges[i] < msg.range_max && msg.ranges[i] > msg.range_min){
@@ -35,15 +46,17 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
 
             try{
                 geometry_msgs::PointStamped vero_point;
-                listener.waitForTransform(baseFrame, laserFrame, ros::Time::now(), ros::Duration(2.0));
-                listener.transformPoint(baseFrame, laser_point, vero_point);
+                listener.waitForTransform(base_frame_tf, laser_frame_tf, ros::Time::now(), ros::Duration(2.0));
+                listener.transformPoint(base_frame_tf, laser_point, vero_point);
 
-                if(hp.selector(arr, filteredBisectrixCoeffs.data()) == 'L'){
+                //if(hp.selector(arr, filteredBisectrixCoeffs.data()) == 'L'){ // selection done using the bisector line orientation as reference
+                if(hp.selector(arr) == 'L'){ // selection done using the car orientation as reference
                     x_left.push_back(vero_point.point.x);
                     y_left.push_back(vero_point.point.y);
 
                 }
-                else if (hp.selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
+                //else if (hp.selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
+                else if (hp.selector(arr) == 'R'){
                     x_right.push_back(vero_point.point.x);
                     y_right.push_back(vero_point.point.y);
 
@@ -51,7 +64,7 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
             }
             catch(tf::TransformException& ex){
                 ROS_ERROR_STREAM("Received an exception trying to transform a point from "
-                                 << laserFrame <<  " to " << baseFrame << ". "
+                                 << laser_frame_tf <<  " to " << base_frame_tf << ". "
                                  << ex.what());
             }
         }
@@ -92,82 +105,37 @@ void Laser::laserCallback(const sensor_msgs::LaserScan& msg){
     if(ret == 0){
         // The arguments of the function bisectrixLine are float vectors.
         // Lets "cast" the array variable modelL/R to a float vector.
-        std::vector<float> leftCoeffs(modelL,modelL+3), rightCoeffs(modelR, modelR+3);
-        std::vector<float> bisectrixCoeffs = utils::bisectrixLine(leftCoeffs, rightCoeffs); // Bisectrix coefficients
+        std::vector<float> left_line_coeffs(modelL,modelL+3), right_line_coeffs(modelR, modelR+3);
+        std::vector<float> bisector_line_coeffs = utils::bisectrixLine(left_line_coeffs, right_line_coeffs); // Bisectrix coefficients
 
         /////////////////////// KALMAN ///////////////////////
-        std::vector<float> dummy = utils::fromThree2TwoCoeffs(bisectrixCoeffs);
+        std::vector<float> dummy = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
         kalman.filter( Eigen::Map<Eigen::Matrix<float,2,1> >(dummy.data()) ) ;
         Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
         if(std::isnan(dummy[0])){
             kalman.resetState();
             dummy[0] = 0.0; dummy[1] = 0.0;
         }
-        filteredBisectrixCoeffs = utils::fromTwo2ThreeCoeffs(dummy);
+        filtered_bisector_line_coeffs = utils::fromTwo2ThreeCoeffs(dummy);
         //////////////////////////////////////////////////////
 
-        // Publish a Pointcloud message from the line
+        // Publishing messages
         ros::Time timestamp = ros::Time::now();
 
         pcl::PointCloud<pcl::PointXYZ> line;
 
-        addLineToPointcloud(filteredBisectrixCoeffs, line);
-        addLineToPointcloud(leftCoeffs, line);
-        addLineToPointcloud(rightCoeffs, line);
+        utils::addLineToPointcloud(filtered_bisector_line_coeffs, line);
+        utils::addLineToPointcloud(left_line_coeffs, line);
+        utils::addLineToPointcloud(right_line_coeffs, line);
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(line, line_msg);
         line_msg.header.stamp = timestamp;
-        line_msg.header.frame_id = baseFrame;
-        bisectLine_pcl_pub.publish(line_msg);
+        line_msg.header.frame_id = base_frame_tf;
+        lines_pcl_pub.publish(line_msg);
 
-        // Publishing messages
-        ransac_corridor_control::BorderLines msgBorderLines;
-        msgBorderLines.header.stamp = timestamp;
-        msgBorderLines.header.frame_id = baseFrame;
-        msgBorderLines.line_left = leftCoeffs;
-        msgBorderLines.line_right = rightCoeffs;
-        msgBorderLines.x_left = x_left;
-        msgBorderLines.y_left = y_left;
-        msgBorderLines.x_right = x_right;
-        msgBorderLines.y_right = y_right;
-        borderLines_pub.publish(msgBorderLines); // publishing coefficients of the left and righ lines
-
-        ransac_corridor_control::Bisectrix msgBisectrixLine;
-        msgBisectrixLine.header.stamp = timestamp;
-        msgBisectrixLine.header.frame_id = baseFrame;
-        msgBisectrixLine.bisectrix = filteredBisectrixCoeffs;
-        bisectLine_pub.publish(msgBisectrixLine); //publishing the coefficients of the bisectrix
+        ransac_corridor_control::LineCoeffs3 filtered_bisector_line_msg;
+        filtered_bisector_line_msg.coeffs = filtered_bisector_line_coeffs;
+        bisector_line_pub.publish(filtered_bisector_line_msg);
     }
-}
-
-Laser* Laser::uniqueInst( const pub &_borderLines_pub
-                         ,const pub &_bisectLine_pub
-                         ,const pub &_bisectLine_pcl_pub
-                         ,const float _threshold
-                         ,const float _winWidth
-                         ,const float _winLength
-                         ,const bool _verbose
-                         ,const std::string _baseFrame
-                         ,const std::string _laserFrame){
-    if(instance == 0){
-        instance = new Laser( _borderLines_pub
-                             ,_bisectLine_pub
-                             ,_bisectLine_pcl_pub
-                             ,_threshold
-                             ,_winWidth
-                             ,_winLength
-                             ,_verbose
-                             ,_baseFrame
-                             ,_laserFrame);
-    }
-    return instance;
-}
-
-/////////////////////////////////////////////////////////////////////
-// Sets and gets ////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-double Laser::getThreshold () {
-    return threshold;
 }

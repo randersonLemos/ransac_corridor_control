@@ -1,0 +1,23 @@
+laser:
+  verbose: false
+  window_width: 50.0
+  window_length: 20.0
+  threshold: 2.5
+kalman:
+  model_variance: 1.0
+  measure_variance: 50.0
+control:
+  kpt: 1.0
+  kit: 0.1
+  krt: 1.0
+  kvt: 5.0
+  ramp_time: 5.0
+  max_lin_vel: 5.0
+topics:
+  lines_pcl: "lines_pcl"
+  bisector_coeffs: "bisector_coeffs"
+  laser_scan: "scan"
+  cmd_vel: "car_command"
+tfs:
+  base_link: "base_link"
+  laser_link: "hokuyo_link"

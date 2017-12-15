@@ -18,6 +18,19 @@ void HandlePoints::bisectrixFrame(float *pt, float const * const coeffs){
     pt[1] = arr1[1] + arr2[1];
 }
 
+char HandlePoints::selector(float const * const pt){
+   float arr[] = {pt[0], pt[1]};
+    if(arr[0] <= winLength){
+        if(arr[1] >= 0.0 && arr[1] <= winWidth/2){
+            return 'L';
+        }
+        else if(arr[1] <= 0.0 && arr[1] >= -winWidth/2){
+            return 'R';
+        }
+    }
+    return 'F'; // F of False
+}
+
 char HandlePoints::selector(float const * const pt, float const * const coeffs){
    float arr[] = {pt[0], pt[1]};
     //bisectrixFrame(arr, coeffs) // transform from car frame to reference path frame;

@@ -16,7 +16,7 @@ std::vector<float> utils::bisectrixLine(std::vector<float> l1, std::vector<float
     a1k = a1/k1; b1k = b1/k1; c1k = c1/k1;
     a2k = a2/k2; b2k = b2/k2; c2k = c2/k2;
 
-    bi1_a = (a1k - a2k); bi1_b = (b1k - b2k); bi1_c = (c1k - c2k); 
+    bi1_a = (a1k - a2k); bi1_b = (b1k - b2k); bi1_c = (c1k - c2k);
     bi2_a = (a1k + a2k); bi2_b = (b1k + b2k); bi2_c = (c1k + c2k);
 
     // seleciona a bissetriz com menor angulo em relacao ao eixo Y
@@ -77,4 +77,20 @@ std::vector<float> utils::fromTwo2ThreeCoeffs(std::vector<float> _coeffs){
     coeffs[1] = 1.0;
     coeffs[2] = -_coeffs[1];
     return coeffs;
+}
+
+void utils::addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line){
+
+    float a, b, c;
+    a = coeffs[0];
+    b = coeffs[1];
+    c = coeffs[2];
+
+    for(int i = 0; i < 30; ++i){
+        pcl::PointXYZ p;
+        p.x = i/2.0;
+        p.y = -(c+a*p.x)/b;
+        p.z = 0.0;
+        line.push_back(p);
+    }
 }

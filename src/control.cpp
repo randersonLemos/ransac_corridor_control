@@ -2,113 +2,55 @@
 
 Control* Control::instance = 0;
 
-void Control::ransacCallback(const ransac_corridor_control::Bisectrix &biMsg)
-{
-    //watchdog->IsAlive();
+Control* Control::unique_instance(){
+   if(instance == 0){
+       ROS_ERROR_STREAM("There is no Control class instance");
+   }
+   return instance;
+}
 
-    std::vector<double> bisectrix(4);
-    bisectrix[0] = -15;
-    bisectrix[1] = 15;
-    bisectrix[2] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[0])/biMsg.bisectrix[1];
-    bisectrix[3] = -(biMsg.bisectrix[2] + biMsg.bisectrix[0]*bisectrix[1])/biMsg.bisectrix[1];
+Control* Control::unique_instance( const float &_kpt
+                                  ,const float &_kit
+                                  ,const float &_krt
+                                  ,const float &_kvt
+                                  ,const float &_ramp_time
+                                  ,const float &_max_lin_vel
+                                  ,const ros::Publisher &_cmd_vel_pub
+                                 ){
+   if(instance == 0){
+       instance = new Control( _kpt
+                              ,_kit
+                              ,_krt
+                              ,_kvt
+                              ,_ramp_time
+                              ,_max_lin_vel
+                              ,_cmd_vel_pub
+                             );
+   }
+   return instance;
+}
 
-    if(linearVel < maxLinearVel){ // gradually increasing speed
-        linearVel = maxLinearVel * (ros::Time::now() - startTime).toSec() / rampTime.toSec();
+void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisector_line_msg){
+    std::vector<double> points(4);
+    points[0] = -15;
+    points[1] = 15;
+    points[2] = -(bisector_line_msg.coeffs[2] + bisector_line_msg.coeffs[0]*points[0])/bisector_line_msg.coeffs[1];
+    points[3] = -(bisector_line_msg.coeffs[2] + bisector_line_msg.coeffs[0]*points[1])/bisector_line_msg.coeffs[1];
+
+    if(linear_vel < max_lin_vel){ // gradually increasing speed
+        linear_vel = max_lin_vel* (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
     }
 
-    /**************************************************************************************/
-    /*Control Function*/
+    /////////////////////// CONTROL ///////////////////////
     double rudder;
-    rudder = ControlPIV::LineTracking(bisectrix, linearVel, angularVel, dt, KPT, KIT, KRT, KVT);
-    /**************************************************************************************/
+    rudder = ControlPIV::LineTracking(points, linear_vel, angular_vel, dt, kpt, kit, krt, kvt);
+    ///////////////////////////////////////////////////////
 
     dt = ros::Time::now().toSec();
 
-    if(platform.compare("vero") == 0){
-        ROS_INFO_STREAM("Command send to VERO");
-        ransac_corridor_control::CarCommand msgvero;
-        msgvero.speedLeft  = linearVel;
-        msgvero.speedRight = linearVel;
-        msgvero.steerAngle = rudder;
-        pubCommand->publish(msgvero);
-    }
-    else{
-        ROS_INFO_STREAM("Command send to PIONEER");
-        geometry_msgs::Twist msgpionner;
-        msgpionner.linear.x = linearVel ; msgpionner.linear.y = 0.0;  msgpionner.linear.z = 0.0;
-        msgpionner.angular.x = 0.0;      msgpionner.angular.y = 0.0;  msgpionner.angular.z = rudder;
-        pubCommand->publish(msgpionner);
-    }
-} /* ransacCallback */
-
-
-Control* Control::uniqueInst(){
-    if(instance == 0){
-        instance = new Control();
-    }
-    return instance;
-}
-
-void Control::configTime(){
-    // Necessary block to work with bagfiles and simulated time.
-    // in this context, now() will return 0 until it gets the first
-    // message of /clock topic
-    bool print = true;
-    while(!ros::Time::now().toSec()){
-        if(print) ROS_INFO("Waiting for simulated time...");
-        print = false;
-    }
-    startTime = ros::Time::now();
-    dt = startTime.toSec();
-}
-
-void Control::publica(const ransac_corridor_control::CarCommand &msg){
-    pubCommand->publish(msg);
-}
-void Control::publica(const geometry_msgs::Twist &msg){
-    pubCommand->publish(msg);
-}
-
-
-/////////////////////////////////////////////////////////////////////
-// Sets and gets ////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-void Control::setPub(const pub &pCommand){
-    pubCommand = new pub();
-    *pubCommand = pCommand;
-}
-void Control::setKPT(const double &x){
-    KPT = x;
-}
-void Control::setKIT(const double &x){
-    KIT = x;
-}
-void Control::setKRT(const double &x){
-    KRT = x;
-}
-void Control::setKVT(const double &x){
-    KVT = x;
-}
-void Control::setLength(const double &x){
-    length = x;
-}
-void Control::setPlatform(const std::string &x){
-    platform = x;
-}
-void Control::setRampTime(const int &x){
-    rampTime = ros::Duration(x);
-}
-void Control::setAngularVel(const double &x){
-    angularVel = x;
-}
-void Control::setMaxLinearVel(const double &x){
-    maxLinearVel = x;
-}
-
-std::string Control::getPlatform(){
-    return platform;
-}
-double Control::getAngularVel(){
-    return angularVel;
-}
+    ransac_corridor_control::CarCommand cmd_vel_msg;
+    cmd_vel_msg.speedLeft  = linear_vel;
+    cmd_vel_msg.speedRight = linear_vel;
+    cmd_vel_msg.steerAngle = rudder;
+    cmd_vel_pub.publish(cmd_vel_msg);
+} /* ransac_callback */

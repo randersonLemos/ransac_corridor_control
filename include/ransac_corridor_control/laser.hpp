@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
 
@@ -14,8 +13,7 @@
 #include "kalman.hpp"
 #include "ransac2Dline.hpp"
 #include "handlePoints.hpp"
-#include "ransac_corridor_control/Bisectrix.h"
-#include "ransac_corridor_control/BorderLines.h"
+#include "ransac_corridor_control/LineCoeffs3.h"
 
 #include "Eigen/Dense"
 
@@ -27,66 +25,65 @@
 
 class Laser{
 private:
-    typedef ros::Publisher pub;
-
-    pub borderLines_pub, bisectLine_pub, bisectLine_pcl_pub;
+    ros::Publisher bisector_line_pub, lines_pcl_pub;
 
     float threshold;
+
     bool verbose;
 
-    std::string baseFrame, laserFrame;
+    std::string base_frame_tf, laser_frame_tf;
 
     HandlePoints hp;
 
-    std::vector<float> filteredBisectrixCoeffs;
+    std::vector<float> filtered_bisector_line_coeffs;
 
     Kalman kalman;
 
-    const tf::TransformListener listener;
+    tf::TransformListener listener;
 
     static Laser *instance;
 protected:
-    Laser ( const pub &_borderLines_pub
-           ,const pub &_bisectLine_pub
-           ,const pub &_bisectLine_pcl_pub
+    Laser ( const ros::Publisher &_bisector_line_pub
+           ,const ros::Publisher &_lines_pcl_pub
            ,const float _threshold
            ,const float _winWidth
            ,const float _winLength
+           ,const float _model_variance
+           ,const float _measure_variance
            ,const bool _verbose
-           ,const std::string _baseFrame
-           ,const std::string _laserFrame
+           ,const std::string _base_frame_tf
+           ,const std::string _laser_frame_tf
           ):
-            borderLines_pub(_borderLines_pub)
-           ,bisectLine_pub(_bisectLine_pub)
-           ,bisectLine_pcl_pub(_bisectLine_pcl_pub)
+            bisector_line_pub(_bisector_line_pub)
+           ,lines_pcl_pub(_lines_pcl_pub)
            ,threshold(_threshold)
            ,verbose(_verbose)
-           ,baseFrame(_baseFrame)
-           ,laserFrame(_laserFrame)
-           ,hp( _winWidth
-               ,_winLength)
-           ,filteredBisectrixCoeffs(3, 0.0)
-           ,kalman( 1.0
-                   ,100.0 // PARAMETRIZAR!!!
+           ,base_frame_tf(_base_frame_tf)
+           ,laser_frame_tf(_laser_frame_tf)
+           ,hp( _winWidth, _winLength)
+           ,kalman( _model_variance
+                   ,_measure_variance
                    ,(Eigen::Vector2f() << 0.0, 0.0).finished()
-                   ,(Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished())
+                   ,(Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished()
+                  )
+           ,filtered_bisector_line_coeffs(3, 0.0)
            ,listener(ros::Duration(10))
-    { }
+          {}
     Laser (const Laser& other) {}
     Laser &operator= (const Laser& other) {}
 public:
-    static Laser* uniqueInst ( const pub &_borderLines_pub
-                              ,const pub &_bisectLine_pub
-                              ,const pub &_bisectLine_pcl_pub
-                              ,const float _threshold
-                              ,const float _winWidth
-                              ,const float _winLength
-                              ,const bool _verbose
-                              ,const std::string _baseFrame
-                              ,const std::string _laserFrame);
+    static Laser* unique_instance( const ros::Publisher &_bisector_line_pub
+                                  ,const ros::Publisher &_lines_pcl_pub
+                                  ,const float _threshold
+                                  ,const float _winWidth
+                                  ,const float _winLength
+                                  ,const float _model_variance
+                                  ,const float _measure_variance
+                                  ,const bool _verbose
+                                  ,const std::string _base_frame_tf
+                                  ,const std::string _laser_frame_tf
+                                 );
 
-    void laserCallback (const sensor_msgs::LaserScan& msg);
-
-    double getThreshold ();
+    void laser_callback (const sensor_msgs::LaserScan& msg);
 };
 #endif /* LASER_H */

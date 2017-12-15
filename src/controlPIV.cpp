@@ -56,7 +56,7 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     //ROS_INFO_STREAM("vel = (" << vel[0] << ", " << vel[1] << ")");
 
     // component velocity perpendicular to the trajectory
-    ddv = trans[0]*vel[1] - trans[1]*vel[0];
+    ddv = -(trans[0]*vel[1] - trans[1]*vel[0]);
     //ROS_INFO_STREAM("ddv = " << ddv);
 
     // vehicle displacement
@@ -71,8 +71,8 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     /* COMPUTING THE CONTROL SIGN*/
     ControlPIV::errori = ControlPIV::errori + dd*TSAMPLETRAJ;
 
-    if (ControlPIV::errori >  27) ControlPIV::errori =  27;
-    if (ControlPIV::errori < -27) ControlPIV::errori = -27;
+    if (ControlPIV::errori >  5) ControlPIV::errori =  5;
+    if (ControlPIV::errori < -5) ControlPIV::errori = -5;
     psirefc = KPT*dd + KVT*ddv + KIT*ControlPIV::errori;
     //ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << ControlPIV::errori);
     //ROS_INFO_STREAM("psirefc = " << psirefc);
@@ -84,7 +84,7 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     rudder = KRT * rudder;
 
     rudder = (rudder>20?20:(rudder<-20?-20:rudder));
-    
+
     // steering angle
     rudder = rudder*PI/180;
     //ROS_INFO_STREAM("rudder = " << rudder);

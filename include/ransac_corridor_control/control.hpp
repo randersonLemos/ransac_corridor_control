@@ -2,61 +2,65 @@
 #define RANSAC_CONTROL_H
 
 #include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
 
 #include "controlPIV.hpp"
-#include "ransac_corridor_control/Bisectrix.h"
 #include "ransac_corridor_control/CarCommand.h"
-#include "ransac_corridor_control/BorderLines.h"
-
+#include "ransac_corridor_control/LineCoeffs3.h"
 
 
 class Control{
 private:
-    typedef ros::Publisher pub;
-    typedef ros::NodeHandle nHandle;
-
     static Control *instance;
 
-    pub *pubCommand;
-
-    //WatchDog *watchdog;
-
-    double linearVel, angularVel, dt;
-    ros::Time startTime;
+    double linear_vel, angular_vel, dt;
+    ros::Time start_time;
 
     /* parameters defined by the user */
-    double KPT, KIT, KRT, KVT, maxLinearVel, length;
-    std::string platform;
-    ros::Duration rampTime;
+    double kpt, kit, krt, kvt, max_lin_vel;
+    ros::Duration ramp_time;
 protected:
-    Control () {}
+    Control ( const float &_kpt
+             ,const float &_kit
+             ,const float &_krt
+             ,const float &_kvt
+             ,const float &_ramp_time
+             ,const float &_max_lin_vel
+             ,const ros::Publisher &_cmd_vel_pub
+            ):
+              kpt(_kpt)
+             ,kit(_kit)
+             ,krt(_krt)
+             ,kvt(_kvt)
+             ,ramp_time(_ramp_time)
+             ,max_lin_vel(_max_lin_vel)
+             ,cmd_vel_pub(_cmd_vel_pub)
+            {
+        bool print = true;
+        while(!ros::Time::now().toSec()){
+           if(print){
+              print = false;
+              ROS_INFO("Waiting for time");
+           }
+        }
+        ROS_INFO("Time received");
+        start_time = ros::Time::now();
+        dt = start_time.toSec();
+    }
     Control (const Control& other) {}
     Control &operator= (const Control& other) {}
 public:
-    static Control* uniqueInst ();
+    ros::Publisher cmd_vel_pub;
 
-    void ransacCallback(const ransac_corridor_control::Bisectrix &biMsg);
+    static Control* unique_instance();
+    static Control* unique_instance( const float &_kpt
+                                    ,const float &_kit
+                                    ,const float &_krt
+                                    ,const float &_kvt
+                                    ,const float &_ramp_time
+                                    ,const float &_max_lin_vel
+                                    ,const ros::Publisher &_cmd_vel_pub
+                                   );
 
-    void publica(const ransac_corridor_control::CarCommand &msg);
-    void publica(const geometry_msgs::Twist &msg);
-
-    void configTime();
-
-    void setPub(const pub &pCommand);
-    void setKPT(const double &x);
-    void setKIT(const double &x);
-    void setKRT(const double &x);
-    void setKVT(const double &x);
-    void setLength(const double &x);
-    void setPlatform(const std::string &x);
-    void setRampTime(const int &x);
-    void setAngularVel(const double &x);
-    void setMaxLinearVel(const double &x);
-
-    double getAngularVel();
-    std::string getPlatform();
-
+    void ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisector_line_msg);
 };
 #endif /* RANSAC_CONTROL_H */

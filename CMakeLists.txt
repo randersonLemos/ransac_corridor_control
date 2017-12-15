@@ -17,8 +17,8 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs nav_msgs roscpp sensor_msg
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  Bisectrix.msg
-  BorderLines.msg
+  LineCoeffs2.msg
+  LineCoeffs3.msg
   CarCommand.msg
 )
 
@@ -79,21 +79,21 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 ## Declare a cpp executable
-add_executable(nodeRansac src/nodeRansac.cpp)
-add_executable(nodeControl src/nodeControl.cpp)
+add_executable(bisector_node src/bisector_node.cpp)
+add_executable(control_node src/control_node.cpp)
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_corridor_control_gencpp)
-add_dependencies(nodeRansac ransac_corridor_control_gencpp ${PROJECT_NAME})
-add_dependencies(nodeControl ransac_corridor_control_gencpp ${PROJECT_NAME})
+add_dependencies(bisector_node ransac_corridor_control_gencpp ${PROJECT_NAME})
+add_dependencies(control_node ransac_corridor_control_gencpp ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(nodeRansac
+target_link_libraries(bisector_node
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
 
-target_link_libraries(nodeControl
+target_link_libraries(control_node
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )

@@ -5,6 +5,10 @@
 #include <vector>
 #include <iostream>
 
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
+
 namespace utils{
 /**
  * Retorna os coeficientes (a, b, c) da reta bissetriz no formato
@@ -17,11 +21,12 @@ namespace utils{
 */
 std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
 
-std::vector<float> fromThree2TwoCoeffs(std::vector<float> _coeffs); 
+std::vector<float> fromThree2TwoCoeffs(std::vector<float> _coeffs);
 
 std::vector<float> fromTwo2ThreeCoeffs(std::vector<float> _coeffs);
+
+void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line);
+
 }
 
 #endif /* UTILS_H */
-
-
