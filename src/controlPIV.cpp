@@ -8,9 +8,10 @@ fora desta função.
 double ControlPIV::errori = 0.0;
 
 double ControlPIV::LineTracking(const std::vector<double> &line,
-                             const double &v_linear, const double &v_angular,
-                             const double &dt,
-                             const double &KPT, const double &KIT, const double &KRT, const double &KVT){
+                                const double &v_linear, const double &v_angular,
+                                const double &dt,
+                                const double &KPT, const double &KIT, const double &KRT, const double &KVT)
+{
     double trans[2], dist[2];
     double dist_val, head, rudder;
 
@@ -71,23 +72,15 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     /* COMPUTING THE CONTROL SIGN*/
     ControlPIV::errori = ControlPIV::errori + dd*TSAMPLETRAJ;
 
-    if (ControlPIV::errori >  5) ControlPIV::errori =  5;
-    if (ControlPIV::errori < -5) ControlPIV::errori = -5;
+    if (ControlPIV::errori >  0.05) ControlPIV::errori =  0.05;
+    if (ControlPIV::errori < -0.05) ControlPIV::errori = -0.05;
     psirefc = KPT*dd + KVT*ddv + KIT*ControlPIV::errori;
-    //ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << ControlPIV::errori);
-    //ROS_INFO_STREAM("psirefc = " << psirefc);
+    ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << ControlPIV::errori);
+    ROS_INFO_STREAM("psirefc = " << psirefc);
 
-    psirefc = psirefc>= 90? 89:psirefc;
-    psirefc = psirefc<=-90?-89:psirefc;
-
-    rudder = psirefc;
-    rudder = KRT * rudder;
-
-    rudder = (rudder>20?20:(rudder<-20?-20:rudder));
-
-    // steering angle
-    rudder = rudder*PI/180;
-    //ROS_INFO_STREAM("rudder = " << rudder);
+    rudder = KRT * psirefc;
+    rudder = (rudder>20.0*PI/180.0?20.0*PI/180.0:(rudder<-20.0*PI/180.0?-20.0*PI/180.0:rudder));
+    ROS_INFO_STREAM("rudder = " << rudder);
 
     return rudder;
 
