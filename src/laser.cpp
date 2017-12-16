@@ -125,6 +125,7 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         pcl::PointCloud<pcl::PointXYZ> line;
 
         utils::addLineToPointcloud(filtered_bisector_line_coeffs, line);
+        utils::addLineToPointcloud(bisector_line_coeffs, line);
         utils::addLineToPointcloud(left_line_coeffs, line);
         utils::addLineToPointcloud(right_line_coeffs, line);
 

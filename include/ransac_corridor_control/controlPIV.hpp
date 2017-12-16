@@ -7,22 +7,8 @@
 
 #define PI 3.14159265
 
-/* LineTracking
- *     Função de controle para seguir uma trajetória dada por uma reta
- * Entradas: 
- *    line               : vetor contendo os pontos que definem a trajetória (x1, x2, y1, y2)
- *    v_linear           : velocidade linear do veículo
- *    v_angular          : velocidade angular do veiculo
- *    dt                 : intervalo de tempo desde a ultima chamada da funcao
- *    KPT, KIT, KRT, KVT : ganhos do controlador
- *
- * Saída:
- *    velocidade angular em rad/s
- */
-
-
-
-class ControlPIV{
+class ControlPIV
+{
 private:
     static double errori;
 public:

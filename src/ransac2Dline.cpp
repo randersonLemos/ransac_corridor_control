@@ -1,7 +1,8 @@
 #include "ransac2Dline.hpp"
 
 int ransac_2Dline(float **data, int n, int maxT, float threshold,
-                  float *bestModel, int *bestInliers, int side, int verbose) {
+                  float *bestModel, int *bestInliers, int side, int verbose)
+{
 
     if(verbose)
         printf("Start RANSAC, n=%d, maxT=%d, t=%.2f\n\n", n, maxT, threshold);
