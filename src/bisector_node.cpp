@@ -10,8 +10,10 @@ int main(int argc,char **argv){
     double threshold,
            win_width,
            win_length,
-           model_variance,
-           measure_variance;
+           model_variance_11,
+           model_variance_22,
+           measure_variance_11,
+           measure_variance_22;
     if(!nh.getParam("/ransac/laser/threshold", threshold)){
         ROS_ERROR_STREAM("Failed to get param '/ransac/laser/threshold'"); exit(0);
     }
@@ -22,12 +24,19 @@ int main(int argc,char **argv){
         ROS_ERROR_STREAM("Failed to get param '/ransac/laser/window_length'"); exit(0);
     }
     /* Parameters for the Kalman class which is executed inside Laser class*/
-    if(!nh.getParam("/ransac/kalman/model_variance", model_variance)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/model_variance'"); exit(0);
+    if(!nh.getParam("/ransac/kalman/model_variance_11", model_variance_11)){
+        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/model_variance_11'"); exit(0);
     }
-    if(!nh.getParam("/ransac/kalman/measure_variance", measure_variance)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance'"); exit(0);
+    if(!nh.getParam("/ransac/kalman/model_variance_22", model_variance_22)){
+        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/model_variance_22'"); exit(0);
     }
+    if(!nh.getParam("/ransac/kalman/measure_variance_11", measure_variance_11)){
+        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance_11'"); exit(0);
+    }
+    if(!nh.getParam("/ransac/kalman/measure_variance_22", measure_variance_22)){
+        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance_22'"); exit(0);
+    }
+
     bool verbose;
     if(!nh.getParam("/ransac/laser/verbose",verbose)){
         ROS_ERROR_STREAM("Failed to get param '/ransac/laser/verbose'"); exit(0);
@@ -63,8 +72,10 @@ int main(int argc,char **argv){
                                        ,threshold
                                        ,win_width
                                        ,win_length
-                                       ,model_variance
-                                       ,measure_variance
+                                       ,model_variance_11
+                                       ,model_variance_22
+                                       ,measure_variance_11
+                                       ,measure_variance_22
                                        ,verbose
                                        ,base_link
                                        ,laser_link

@@ -7,8 +7,10 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                               ,const float _threshold
                               ,const float _winWidth
                               ,const float _winLength
-                              ,const float _model_variance
-                              ,const float _measure_variance
+                              ,const float _model_variance_11
+                              ,const float _model_variance_22
+                              ,const float _measure_variance_11
+                              ,const float _measure_variance_22
                               ,const bool _verbose
                               ,const std::string _base_frame_tf
                               ,const std::string _laser_frame_id
@@ -19,8 +21,10 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                              ,_threshold
                              ,_winWidth
                              ,_winLength
-                             ,_model_variance
-                             ,_measure_variance
+                             ,_model_variance_11
+                             ,_model_variance_22
+                             ,_measure_variance_11
+                             ,_measure_variance_22
                              ,_verbose
                              ,_base_frame_tf
                              ,_laser_frame_id
@@ -110,7 +114,8 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
         /////////////////////// KALMAN ///////////////////////
         std::vector<float> dummy = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
-        kalman.filter( Eigen::Map<Eigen::Matrix<float,2,1> >(dummy.data()) ) ;
+        //Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
+        kalman.filter( Eigen::Map<Eigen::Matrix<float,2,1> >(dummy.data()) );
         Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
         if(std::isnan(dummy[0])){
             kalman.resetState();

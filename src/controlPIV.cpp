@@ -21,6 +21,7 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     double dd1 = 0; // perpendicular travelled distance by the vehicle in relation the trajectory
     double psirefc = 0;
     double TSAMPLETRAJ = ros::Time::now().toSec() - dt;
+    ROS_INFO_STREAM("time stamp=" << TSAMPLETRAJ);
 
     /* COMPUTING dd, ddv, dd1*/
     // setting that the vehicle is aligned with the EAST
@@ -75,7 +76,7 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     if (ControlPIV::errori >  0.05) ControlPIV::errori =  0.05;
     if (ControlPIV::errori < -0.05) ControlPIV::errori = -0.05;
     psirefc = KPT*dd + KVT*ddv + KIT*ControlPIV::errori;
-    ROS_INFO_STREAM("perr = " << dd  << " derr = " << ddv << " ierr = " << ControlPIV::errori);
+    ROS_INFO_STREAM("perr = " << KPT*dd  << " derr = " << KVT*ddv << " ierr = " << KIT*ControlPIV::errori);
     ROS_INFO_STREAM("psirefc = " << psirefc);
 
     rudder = KRT * psirefc;
