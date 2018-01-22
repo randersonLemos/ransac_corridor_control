@@ -113,15 +113,18 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         std::vector<float> bisector_line_coeffs = utils::bisectrixLine(left_line_coeffs, right_line_coeffs); // Bisectrix coefficients
 
         /////////////////////// KALMAN ///////////////////////
-        std::vector<float> dummy = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
-        //Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
-        kalman.filter( Eigen::Map<Eigen::Matrix<float,2,1> >(dummy.data()) );
-        Eigen::Map<Eigen::MatrixXf>(dummy.data(), 2, 1) = kalman.getState();
-        if(std::isnan(dummy[0])){
+        std::vector<float> measurement = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
+        kalman.filter( Eigen::Map< Eigen::Vector2f >(measurement.data()) );
+        Eigen::Vector4f state = kalman.getState();
+        std::vector<float> sub_state(2);
+        if(std::isnan(state[0])){
             kalman.resetState();
-            dummy[0] = 0.0; dummy[1] = 0.0;
+            state[0] = state[1] = state[2] = state[3] = 0.0;
         }
-        filtered_bisector_line_coeffs = utils::fromTwo2ThreeCoeffs(dummy);
+        sub_state[0] = state[0];
+        sub_state[1] = state[2];
+        filtered_bisector_line_coeffs = utils::fromTwo2ThreeCoeffs(sub_state);
+        //filtered_bisector_line_coeffs = bisector_line_coeffs;
         //////////////////////////////////////////////////////
 
         // Publishing messages

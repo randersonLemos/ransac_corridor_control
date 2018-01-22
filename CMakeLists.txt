@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ransac_corridor_control)
 
+
+
+add_definitions(-fmax-errors=2)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages

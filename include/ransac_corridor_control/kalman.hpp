@@ -6,27 +6,30 @@
 
 class Kalman{
 private:
-    float q1, q2, r1, r2;
+    typedef Eigen::Matrix<float, 4, 2> Matrix42f;
+    typedef Eigen::Matrix<float, 2, 4> Matrix24f;
 
-    Eigen::Vector2f x; // estimate state vector
-    Eigen::Matrix2f P; // estimate covariance matrix
+    float q1, q2, r1, r2;
+    float dt;
+
+    Eigen::Vector4f x; // estimate state vector
+    Eigen::Matrix4f P; // estimate covariance matrix
 
     Eigen::Matrix2f Q; // covariance matrix of the model
     Eigen::Matrix2f R; // covariance matrix of the measures
 
-    static const Eigen::Matrix2f I;
-    static const Eigen::Matrix2f A;
-    static const Eigen::Matrix2f C;
-    static const Eigen::Matrix2f Gamma;
+    static const Eigen::Matrix4f I;
+    static const Eigen::Matrix4f A;
+    static const Matrix24f C;
+    static const Matrix42f Gamma;
 protected:
     Kalman (const Kalman& other) {}
     Kalman &operator= (const Kalman& other) {}
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Kalman () {}
     Kalman ( float _q1, float _q2
            , float _r1, float _r2
-           , const Eigen::Vector2f &_x, const Eigen::Matrix2f &_P
+           , const Eigen::Vector4f &_x, const Eigen::Matrix4f &_P
            )
            : q1(_q1)
            , q2(_q2)
@@ -43,6 +46,6 @@ public:
 
     void resetState();
 
-    const Eigen::Vector2f getState();
+    const Eigen::Vector4f getState();
 };
 #endif /* KALMAN_H */

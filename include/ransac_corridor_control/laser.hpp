@@ -67,8 +67,11 @@ protected:
                    ,_model_variance_22
                    ,_measure_variance_11
                    ,_measure_variance_22
-                   ,(Eigen::Vector2f() << 0.0, 0.0).finished()
-                   ,(Eigen::Matrix2f() << 1e4, 0.0, 0.0, 1e4).finished()
+                   ,(Eigen::Vector4f() <<  0.0, 0.0, 0.0, 0.0).finished()
+                   ,(Eigen::Matrix4f() <<  0.0, 0.0, 0.0, 0.0
+                                          ,0.0, 1e6, 0.0, 0.0
+                                          ,0.0, 0.0, 0.0, 0.0
+                                          ,0.0, 0.0, 0.0, 1e6).finished()
                   )
            ,filtered_bisector_line_coeffs(3, 0.0)
            ,listener(ros::Duration(10))
