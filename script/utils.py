@@ -37,3 +37,6 @@ def points_from_coeffs3(coeffs,npts,scale):
         z = 0.0
         lst.append((x,y,z))
     return lst
+
+def split_state(state):
+    return (el.item() for el in state)

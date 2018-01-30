@@ -83,7 +83,7 @@ double ControlPIV::LineTracking(const std::vector<double> &line,
     rudder = (rudder>20.0*PI/180.0?20.0*PI/180.0:(rudder<-20.0*PI/180.0?-20.0*PI/180.0:rudder));
     //ROS_INFO_STREAM("rudder = " << rudder);
 
-    //return rudder;
-    return 0.1;
+    return rudder;
+    //return 0.1;
 
 } // LineTracking

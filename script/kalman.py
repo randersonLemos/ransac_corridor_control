@@ -1,4 +1,5 @@
 import numpy
+import utils
 
 class EKF(object):
     def __init__(self, dt, l, x, P, Q, R):
@@ -15,21 +16,21 @@ class EKF(object):
         Non-linear model function
         """
 
-        be,b,om,v = [el.item() for el in x]
+        be,b,om,v = utils.split_state(x)
 
         return  numpy.matrix([
                               [be - self.dt*om]
                              ,[b + numpy.tan(be - self.dt*om)*(self.dt*(b*om + v))]
                              ,[om]
                              ,[v]
-                           ])
+                            ])
 
     def F(self, x):
         """
         Jacobian matrix of the non-linear model
         """
 
-        be,b,om,v = [el.item() for el in x]
+        be,b,om,v = utils.split_state(x)
 
         el10 = -self.dt*(b*om + v)*(-numpy.tan(self.dt*om - be)**2-1.0)
         el11 = -self.dt*numpy.tan(self.dt*om - be) + 1.0
@@ -44,6 +45,10 @@ class EKF(object):
                            ])
 
     def h(self,x):
+        """
+        Matrix of the measurement function
+        """
+
         be,b,om,v = [el.item() for el in x]
 
         return numpy.matrix([

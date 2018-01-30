@@ -13,10 +13,6 @@ from geometry_msgs.msg import TwistStamped
 
 z = numpy.matrix([[0.0+1e-4], [0.0+1e-4], [0.0+1e-4], [0.0+1e-4]]) # Let's avoid some zero division
 
-# def car_state_callback(data):
-    # z[0,0] = data.steerAngle
-    # z[1,0] = data.speedLeft
-
 def line_state_callback(data):
     a,b = utils.fromThree2Two(data.coeffs)
     if not (math.isnan(a) or math.isnan(b)):
@@ -24,24 +20,24 @@ def line_state_callback(data):
         z[1,0] = b
 
 def car_state_callback(data):
-    v = data.twist.linear.x
-    om = data.twist.angular.z
-    z[2,0] = om
-    z[3,0] = v
+    z[3,0] = (data.speedLeft + data.speedRight)/2
+    z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/2.8498
+
+# def car_state_callback(data):
+    # v = data.twist.linear.x
+    # om = data.twist.angular.z
+    # z[2,0] = om
+    # z[3,0] = v
 
 if __name__ == '__main__':
-    freq = 10.0
+    freq = 10.0 # Hz
     dt = 1.0/freq
-    l = 2.85
-    be = -numpy.pi/4
-    # be = 0.0
+    l = 2.8498
+    # be = numpy.pi/4.0
+    be = 0.0
     b = 0.0
     om = 0.0
-    # om = 0.200
-    # om = 0.0
-    # v = 1.147
-    # v = 0.000
-    v = 1.000
+    v = 1.130
 
     x = numpy.matrix([[be], [b], [om], [v]])
     P = numpy.matrix([
@@ -50,8 +46,8 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, 1e4, 0.0]
                       ,[0.0, 0.0, 0.0, 1e4]
                     ])
-    q00 = 1
-    q11 = 1
+    q00 = 2.5
+    q11 = 2.5
     q22 = 1
     q33 = 1
     Q = numpy.matrix([
@@ -60,10 +56,10 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, q22, 0.0]
                       ,[0.0, 0.0, 0.0, q33]
                     ])
-    r00 = 10000000
-    r11 = 10000000
-    r22 = 10000000
-    r33 = 10000000
+    r00 = 10
+    r11 = 10
+    r22 = 10
+    r33 = 10
     R = numpy.matrix([
                        [r00, 0.0, 0.0, 0.0]
                       ,[0.0, r11, 0.0, 0.0]
@@ -74,35 +70,44 @@ if __name__ == '__main__':
     ekf = EKF(dt,l,x,P,Q,R)
 
     rospy.init_node('filter')
-    # rospy.Subscriber('car_command', CarCommand, car_state_callback)
+
+    rospy.Subscriber('car_command', CarCommand, car_state_callback)
+    # rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
+
     rospy.Subscriber('bisector_coeffs', LineCoeffs3, line_state_callback)
 
-    rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
+    rate = rospy.Rate(freq)
 
-    rate = rospy.Rate(freq) # 10hz
     filtered_coeffs_pub = rospy.Publisher('filtered_bisector_coeffs', LineCoeffs3, queue_size=10)
     filtered_points_pub = rospy.Publisher('filtered_bisector_pcl', PointCloud2, queue_size=10)
-    linecoeffs_msg = LineCoeffs3()
 
-    time = 0.0
+    line_coeffs3 = LineCoeffs3()
+    header = Header()
+
     while True:
-        ekf.x[2,0] = 0.05*numpy.sin(time*2*numpy.pi/10.0)
-        time += dt
         ekf.predict()
+
+        print 'measurement\n',z
+
         print 'predict\n',ekf.get_state()
-        # print 'measurement\n',z
-        # ekf.update(z)
-        # print 'update\n',ekf.get_state()
-        be,b,om,v = [el.item() for el in ekf.get_state()]
+
+        ekf.update(z)
+
+        print 'update'
+        print 'state\n',ekf.get_state()
+        print 'cov\n',ekf.P
+
+        be,b,om,v = utils.split_state(ekf.get_state())
         a = numpy.tan(be)
+
         print 'line\n',be,b,a
-        header = Header()
+
         header.stamp = rospy.Time.now()
         header.frame_id = "mkz/base_link"
-        points_from_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),100,0.5))
+        points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
 
-        linecoeffs_msg.coeffs = utils.fromTwo2Three((a,b))
+        line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
 
-        filtered_coeffs_pub.publish(linecoeffs_msg)
-        filtered_points_pub.publish(points_from_coeffs3_pcl)
+        filtered_coeffs_pub.publish(line_coeffs3)
+        filtered_points_pub.publish(points_coeffs3_pcl)
         rate.sleep()
