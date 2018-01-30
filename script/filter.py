@@ -19,15 +19,15 @@ def line_state_callback(data):
         z[0,0] = numpy.arctan(a)
         z[1,0] = b
 
-def car_state_callback(data):
-    z[3,0] = (data.speedLeft + data.speedRight)/2
-    z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/2.8498
-
 # def car_state_callback(data):
-    # v = data.twist.linear.x
-    # om = data.twist.angular.z
-    # z[2,0] = om
-    # z[3,0] = v
+#     z[3,0] = (data.speedLeft + data.speedRight)/2
+#     z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/2.8498
+
+def car_state_callback(data):
+    v = data.twist.linear.x
+    om = data.twist.angular.z
+    z[2,0] = om
+    z[3,0] = v
 
 if __name__ == '__main__':
     freq = 10.0 # Hz
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     be = 0.0
     b = 0.0
     om = 0.0
-    v = 1.130
+    v = 3.0
 
     x = numpy.matrix([[be], [b], [om], [v]])
     P = numpy.matrix([
@@ -46,8 +46,8 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, 1e4, 0.0]
                       ,[0.0, 0.0, 0.0, 1e4]
                     ])
-    q00 = 2.5
-    q11 = 2.5
+    q00 = 1
+    q11 = 1
     q22 = 1
     q33 = 1
     Q = numpy.matrix([
@@ -56,8 +56,8 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, q22, 0.0]
                       ,[0.0, 0.0, 0.0, q33]
                     ])
-    r00 = 10
-    r11 = 10
+    r00 = 10000
+    r11 = 10000
     r22 = 10
     r33 = 10
     R = numpy.matrix([
@@ -71,8 +71,8 @@ if __name__ == '__main__':
 
     rospy.init_node('filter')
 
-    rospy.Subscriber('car_command', CarCommand, car_state_callback)
-    # rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
+    # rospy.Subscriber('car_command', CarCommand, car_state_callback)
+    rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
 
     rospy.Subscriber('bisector_coeffs', LineCoeffs3, line_state_callback)
 
@@ -107,6 +107,9 @@ if __name__ == '__main__':
         points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
 
         line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
+
+        line_coeffs3.header.stamp = rospy.Time.now()
+
 
         filtered_coeffs_pub.publish(line_coeffs3)
         filtered_points_pub.publish(points_coeffs3_pcl)
