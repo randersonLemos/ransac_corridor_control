@@ -131,12 +131,12 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
     }
     free(conSet);
 
-    if(bestInliers==0)
-    {
-        printf("\n### ERROR: ransac was unable to find a useful solution.\n");
-        return(-1);
-    }
-    else
+    //if(bestInliers==0)
+    //{
+        //printf("\n### ERROR: ransac was unable to find a useful solution.\n");
+        //return(-1);
+    //}
+    //else
     {
         return(0);
     }
@@ -150,8 +150,8 @@ int randomSelect(float **sel, int nsel, float **data, int *ndata) {
 
     if(nsel > *ndata)
     {
-        printf("randomSelect: unable to select %d points from dataset[%d]\n",
-                nsel, *ndata);
+        //printf("randomSelect: unable to select %d points from dataset[%d]\n",
+                //nsel, *ndata);
         return -1;
     }
 
@@ -191,7 +191,7 @@ int fitModel_line(float *point, float *l, float threshold) {
 
 void estimateModel_line(float *l, float **P, int n) {
     if(n<=2) {
-        perror("Need at least tree points\n");
+        //perror("Need at least tree points\n");
         l[0] = 0;
         l[1] = 0;
         l[2] = 0;

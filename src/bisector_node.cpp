@@ -72,10 +72,10 @@ int main(int argc,char **argv){
                                        ,threshold
                                        ,win_width
                                        ,win_length
-                                       ,model_variance_11
-                                       ,model_variance_22
-                                       ,measure_variance_11
-                                       ,measure_variance_22
+                                       //,model_variance_11
+                                       //,model_variance_22
+                                       //,measure_variance_11
+                                       //,measure_variance_22
                                        ,verbose
                                        ,base_link
                                        ,laser_link

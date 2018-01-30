@@ -41,7 +41,7 @@ int main(int argc, char **argv){
     /* Parameters for topic names*/
     std::string bisector_coeffs_topic,
                 cmd_vel_topic;
-    if(!nh.getParam("/ransac/topics/bisector_coeffs", bisector_coeffs_topic)){
+    if(!nh.getParam("/ransac/topics/filtered_bisector_coeffs", bisector_coeffs_topic)){
         ROS_ERROR_STREAM("Failed to get param '/ransac/bisector_coeffs_topic'"); exit(0);
     }
     if(!nh.getParam("/ransac/topics/cmd_vel", cmd_vel_topic)){
