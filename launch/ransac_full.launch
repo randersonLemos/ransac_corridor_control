@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find ransac_corridor_control)/launch/bisector_node.launch"/>
+	<include file="$(find ransac_corridor_control)/launch/control_node.launch"/>
+</launch>

@@ -42,10 +42,10 @@ int main(int argc, char **argv){
     std::string bisector_coeffs_topic,
                 cmd_vel_topic;
     if(!nh.getParam("/ransac/topics/filtered_bisector_coeffs", bisector_coeffs_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/bisector_coeffs_topic'"); exit(0);
+        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/filtered_bisector_coeffs'"); exit(0);
     }
     if(!nh.getParam("/ransac/topics/cmd_vel", cmd_vel_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/cmd_vel_topic'"); exit(0);
+        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/cmd_vel'"); exit(0);
     }
 
     ros::Publisher cmd_vel_pub;
