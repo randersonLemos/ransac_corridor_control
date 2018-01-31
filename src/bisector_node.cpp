@@ -5,9 +5,6 @@ int main(int argc,char **argv){
     ros::NodeHandle n;
     ros::NodeHandle nh("~");
 
-    ROS_WARN("STARTING BISECTOR_NODE");
-
-
     /* LOADING PARAMETERS */
     /* Parameters for the Laser class from where ransac is executed*/
     double threshold,
@@ -40,9 +37,6 @@ int main(int argc,char **argv){
         ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance_22'"); exit(0);
     }
 
-    ROS_WARN("LOADED LASER AND KALMAN PARAMETERS");
-
-
     bool verbose;
     if(!nh.getParam("/ransac/laser/verbose",verbose)){
         ROS_ERROR_STREAM("Failed to get param '/ransac/laser/verbose'"); exit(0);
@@ -70,9 +64,6 @@ int main(int argc,char **argv){
         ROS_ERROR_STREAM("Failed to get param '/ransac/tfs/laser_link'"); exit(0);
     }
 
-    ROS_WARN("LOADED string parameters");
-
-
     ros::Publisher bisector_coeffs_pub = n.advertise<ransac_corridor_control::LineCoeffs3>(bisector_coeffs_topic, 1);
     ros::Publisher lines_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(lines_pcl_topic, 1);
 
@@ -92,10 +83,7 @@ int main(int argc,char **argv){
 
     ros::Subscriber laser_sub = n.subscribe(laser_scan_topic, 1, &Laser::laser_callback, ls);
 
-    while(ros::ok()){
-      ROS_WARN("TESTE");
-      ros::spinOnce();      
-    }
-
+    ros::spin();
+    
     return 0;
 }
