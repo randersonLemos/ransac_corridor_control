@@ -92,7 +92,7 @@ if __name__ == '__main__':
     line_coeffs3 = LineCoeffs3()
     header = Header()
 
-    while rospy.is_shutdown():
+    while not rospy.is_shutdown():
         if(received_line):
             ekf.predict()
 
