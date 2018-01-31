@@ -148,6 +148,9 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
         ransac_corridor_control::LineCoeffs3 bisector_line_msg;
         bisector_line_msg.header.stamp = ros::Time::now();
+        bisector_line_coeffs[0] /= bisector_line_coeffs[1];
+        bisector_line_coeffs[1] /= bisector_line_coeffs[1];
+        bisector_line_coeffs[2] /= bisector_line_coeffs[1];
         bisector_line_msg.coeffs = bisector_line_coeffs;
         bisector_line_pub.publish(bisector_line_msg);
     }

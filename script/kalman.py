@@ -70,6 +70,7 @@ class EKF(object):
         self.P = self.F(self.x)*self.P*self.F(self.x).T + self.Q
 
     def update(self,z):
+        print(z)
         inov = z - self.h(self.x) # innovation
         S = self.H(self.x)*self.P*self.H(self.x).transpose() + self.R
         K = self.P*self.H(self.x).transpose()*numpy.linalg.inv(S)
