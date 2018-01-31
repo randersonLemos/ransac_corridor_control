@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     rospy.init_node('filter')
 
-    rospy.Subscriber('ransac/car_command', CarCommand, car_state_callback)
+    rospy.Subscriber('/car_command', CarCommand, car_state_callback)
     # rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
 
     rospy.Subscriber('bisector_coeffs', LineCoeffs3, line_state_callback)
