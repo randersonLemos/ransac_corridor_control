@@ -29,7 +29,7 @@ def car_state_callback(data):
 
     received_car = True
     z[3,0] = (data.speedLeft + data.speedRight)/2.
-    z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/.8
+    z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/.58
 
 # def car_state_callback(data):
 #     v = data.twist.linear.x
