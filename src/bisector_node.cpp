@@ -83,7 +83,10 @@ int main(int argc,char **argv){
 
     ros::Subscriber laser_sub = n.subscribe(laser_scan_topic, 1, &Laser::laser_callback, ls);
 
-    ros::spin();
+    while(ros::ok()){
+      ROS_WARN("TESTE");
+      ros::spinOnce();      
+    }
 
     return 0;
 }
