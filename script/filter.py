@@ -19,7 +19,6 @@ def line_state_callback(data):
     global z
     global received_line
     received_line = True
-    print(data.coeffs)
     a,b = utils.fromThree2Two(data.coeffs)
     if not (math.isnan(a) or math.isnan(b)):
         z[0,0] = numpy.arctan(a)
@@ -94,7 +93,6 @@ if __name__ == '__main__':
     header = Header()
 
     while True:
-        print(received_line)
         
         if(received_line):
             ekf.predict()
