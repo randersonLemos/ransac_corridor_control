@@ -112,7 +112,7 @@ if __name__ == '__main__':
             print 'line\n',be,b,a
 
             header.stamp = rospy.Time.now()
-            header.frame_id = "mkz/base_link"
+            header.frame_id = "base_link"
             points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
 
             line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
