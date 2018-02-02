@@ -110,8 +110,8 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         pcl::PointCloud<pcl::PointXYZ> line;
 
         utils::addLineToPointcloud(bisector_line_coeffs, line);
-        // utils::addLineToPointcloud(left_line_coeffs, line);
-        // utils::addLineToPointcloud(right_line_coeffs, line);
+        utils::addLineToPointcloud(left_line_coeffs, line);
+        utils::addLineToPointcloud(right_line_coeffs, line);
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(line, line_msg);
