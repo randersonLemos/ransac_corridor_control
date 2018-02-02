@@ -51,7 +51,7 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
                     y_left.push_back(vero_point.point.y);
 
                 }
-                //else if (hp.selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
+                //else if (hp.selector(arr,  .data()) == 'R'){
                 else if (hp.selector(arr) == 'R'){
                     x_right.push_back(vero_point.point.x);
                     y_right.push_back(vero_point.point.y);
@@ -110,8 +110,8 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         pcl::PointCloud<pcl::PointXYZ> line;
 
         utils::addLineToPointcloud(bisector_line_coeffs, line);
-        utils::addLineToPointcloud(left_line_coeffs, line);
-        utils::addLineToPointcloud(right_line_coeffs, line);
+        // utils::addLineToPointcloud(left_line_coeffs, line);
+        // utils::addLineToPointcloud(right_line_coeffs, line);
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(line, line_msg);
@@ -121,11 +121,10 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
         ransac_corridor_control::LineCoeffs3 bisector_line_msg;
         bisector_line_msg.header.stamp = ros::Time::now();
-        //bisector_line_coeffs[0] = 0.0;
         bisector_line_coeffs[0] /= bisector_line_coeffs[1];
-        bisector_line_coeffs[1] /= bisector_line_coeffs[1];
-        //bisector_line_coeffs[2] = 0.0;
         bisector_line_coeffs[2] /= bisector_line_coeffs[1];
+        bisector_line_coeffs[1] /= bisector_line_coeffs[1];
+        
         bisector_line_msg.coeffs = bisector_line_coeffs;
         bisector_line_pub.publish(bisector_line_msg);
     }
