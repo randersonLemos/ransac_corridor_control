@@ -14,10 +14,11 @@ def fromTwo2Three(coeffs):
 def points_from_coeffs2(coeffs,npts,scale):
     a = coeffs[0]
     b = coeffs[1]
-
+    print 'python: a={}, b={}'.format(a,b)
     lst = []
     # for i in xrange(npts):
-    for i in xrange(-int(npts/2),int(npts/2)):
+    # for i in xrange(int(npts/2),int(npts/2)):
+    for i in xrange(int(npts)):
         x = scale*i
         y = a*x + b
         z = 0.0

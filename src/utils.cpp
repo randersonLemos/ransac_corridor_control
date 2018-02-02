@@ -86,6 +86,8 @@ void utils::addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::
     b = coeffs[1];
     c = coeffs[2];
 
+    std::cout << "a=" << a/b << " b=" << b/b << " c=" << c/b << std::endl;
+
     for(int i = 0; i < 30; ++i){
         pcl::PointXYZ p;
         p.x = i/2.0;

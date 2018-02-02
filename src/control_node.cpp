@@ -39,10 +39,10 @@ int main(int argc, char **argv){
         ROS_ERROR("Failed to get param '/ransac/control/max_lin_vel'"); exit(0);
     }
     /* Parameters for topic names*/
-    std::string bisector_coeffs_topic,
+    std::string filtered_line_coeffs_topic,
                 cmd_vel_topic;
-    if(!nh.getParam("/ransac/topics/filtered_bisector_coeffs", bisector_coeffs_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/filtered_bisector_coeffs'"); exit(0);
+    if(!nh.getParam("/ransac/topics/filtered_line_coeffs", filtered_line_coeffs_topic)){
+        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/filtered_line_coeffs'"); exit(0);
     }
     if(!nh.getParam("/ransac/topics/cmd_vel", cmd_vel_topic)){
         ROS_ERROR_STREAM("Failed to get param '/ransac/topics/cmd_vel'"); exit(0);
@@ -61,12 +61,17 @@ int main(int argc, char **argv){
                                            ,cmd_vel_pub
                                           );
 
-    ros::Subscriber bisector_coeffs_sub = n.subscribe(bisector_coeffs_topic, 1, &Control::ransac_callback, rc);
+    ros::Subscriber bisector_coeffs_sub = n.subscribe(filtered_line_coeffs_topic, 1, &Control::ransac_callback, rc);
 
     signal(SIGINT, ctrl_handler);
     signal(SIGABRT, ctrl_handler);
 
-    ros::spin();
+    ros::Rate r(10); // 10 hz
+    while (ros::ok())
+    {
+      ros::spinOnce();
+      r.sleep();
+    }
 
     return 0;
 }

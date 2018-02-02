@@ -7,10 +7,6 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                               ,const float _threshold
                               ,const float _winWidth
                               ,const float _winLength
-                              //,const float _model_variance_11
-                              //,const float _model_variance_22
-                              //,const float _measure_variance_11
-                              //,const float _measure_variance_22
                               ,const bool _verbose
                               ,const std::string _base_frame_tf
                               ,const std::string _laser_frame_id
@@ -21,10 +17,6 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                              ,_threshold
                              ,_winWidth
                              ,_winLength
-                             //,_model_variance_11
-                             //,_model_variance_22
-                             //,_measure_variance_11
-                             //,_measure_variance_22
                              ,_verbose
                              ,_base_frame_tf
                              ,_laser_frame_id
@@ -112,26 +104,11 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         std::vector<float> left_line_coeffs(modelL,modelL+3), right_line_coeffs(modelR, modelR+3);
         std::vector<float> bisector_line_coeffs = utils::bisectrixLine(left_line_coeffs, right_line_coeffs); // Bisectrix coefficients
 
-        /////////////////////// KALMAN ///////////////////////
-        //std::vector<float> measurement = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
-        //kalman.filter( Eigen::Map< Eigen::Vector2f >(measurement.data()) );
-        //Eigen::Vector4f state = kalman.getState();
-        //std::vector<float> sub_state(2);
-        //if(std::isnan(state[0])){
-            //kalman.resetState();
-            //state[0] = state[1] = state[2] = state[3] = 0.0;
-        //}
-        //sub_state[0] = state[0];
-        //sub_state[1] = state[2];
-        //filtered_bisector_line_coeffs = utils::fromTwo2ThreeCoeffs(sub_state);
-        //////////////////////////////////////////////////////
-
         // Publishing messages
         ros::Time timestamp = ros::Time::now();
 
         pcl::PointCloud<pcl::PointXYZ> line;
 
-        //utils::addLineToPointcloud(filtered_bisector_line_coeffs, line);
         utils::addLineToPointcloud(bisector_line_coeffs, line);
         utils::addLineToPointcloud(left_line_coeffs, line);
         utils::addLineToPointcloud(right_line_coeffs, line);
@@ -142,14 +119,12 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         line_msg.header.frame_id = base_frame_tf;
         lines_pcl_pub.publish(line_msg);
 
-        //ransac_corridor_control::LineCoeffs3 filtered_bisector_line_msg;
-        //filtered_bisector_line_msg.coeffs = filtered_bisector_line_coeffs;
-        //bisector_line_pub.publish(filtered_bisector_line_msg);
-
         ransac_corridor_control::LineCoeffs3 bisector_line_msg;
         bisector_line_msg.header.stamp = ros::Time::now();
+        //bisector_line_coeffs[0] = 0.0;
         bisector_line_coeffs[0] /= bisector_line_coeffs[1];
         bisector_line_coeffs[1] /= bisector_line_coeffs[1];
+        //bisector_line_coeffs[2] = 0.0;
         bisector_line_coeffs[2] /= bisector_line_coeffs[1];
         bisector_line_msg.coeffs = bisector_line_coeffs;
         bisector_line_pub.publish(bisector_line_msg);

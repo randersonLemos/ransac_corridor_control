@@ -1,73 +1,137 @@
 #!/usr/bin/env python
 import rospy
-import math
 import numpy
 import utils
+import sensor_msgs.point_cloud2 as pcl2
 from kalman import EKF
 from ransac_corridor_control.msg import LineCoeffs3
 from ransac_corridor_control.msg import CarCommand
 from sensor_msgs.msg import PointCloud2
-import sensor_msgs.point_cloud2 as pcl2
 from std_msgs.msg import Header
 from geometry_msgs.msg import TwistStamped
 
-z = numpy.matrix([[0.0+1e-4], [0.0+1e-4], [0.0+1e-4], [0.0+1e-4]]) # Let's avoid some zero division
-received_line = False
-received_car = False
+class Filterr(object):
+    def __init__(self, l, ekf, base_link, curr_time, filtered_coeffs_pub, filtered_points_pub):
+        self.l = l
+        self.ekf = ekf
+        self.fcp = filtered_coeffs_pub
+        self.fpp = filtered_points_pub
+        self.base_link = base_link
+        self.curr_time = curr_time # a function
+        self.z = numpy.matrix([[0.0], [0.0]])
+        self.first_call = True
+        self.time = 0.0
 
-def line_state_callback(data):
-    global z
-    global received_line
-    received_line = True
-    a,b = utils.fromThree2Two(data.coeffs)
-    if not (math.isnan(a) or math.isnan(b)):
-        z[0,0] = numpy.arctan(a)
-        z[1,0] = b
+    def line_state_callback(self,data):
+        if self.first_call:
+            self.time = data.header.stamp.to_sec()
+            self.first_call = False
+            return
 
-def car_state_callback(data):
-    global z
+        if not (numpy.isnan(data.coeffs[0]) or numpy.isnan(data.coeffs[1]) or numpy.isnan(data.coeffs[2])):
+            # time = data.header.stamp.to_sec()
+            time = self.curr_time().to_sec()
+            a,b = utils.fromThree2Two(data.coeffs)
+            self.z[0,0] = numpy.arctan(a)
+            self.z[1,0] = b
 
-    received_car = True
-    z[3,0] = (data.speedLeft + data.speedRight)/2.
-    z[2,0] = numpy.tan(data.steerAngle)*z[3,0]/.58
+            # self.ekf.predict(time - self.time)
+            self.ekf.update_line(self.z)
+            self.time = time
 
-# def car_state_callback(data):
-#     v = data.twist.linear.x
-#     om = data.twist.angular.z
-#     z[2,0] = om
-#     z[3,0] = v
+            be,b,om,v = utils.split_state(self.ekf.get_state())
+            a = numpy.tan(be)
+
+            line_coeffs3 = LineCoeffs3()
+            line_coeffs3.header.stamp = self.curr_time()
+            line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
+
+            header = Header()
+            header.stamp = self.curr_time()
+            header.frame_id = self.base_link
+            points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
+
+            self.fcp.publish(line_coeffs3)
+            self.fpp.publish(points_coeffs3_pcl)
+
+    def car_state_callback(self,data):
+        if self.first_call:
+            self.time = data.header.stamp.to_sec()
+            self.first_call = False
+            return
+
+        # time = data.header.stamp.to_sec()
+        time = self.curr_time().to_sec()
+        v = (data.speedLeft + data.speedRight)/2.0
+        om = numpy.tan(data.steerAngle)*v/self.l
+        self.z[0,0] = om
+        self.z[1,0] = v
+
+        self.ekf.predict(time - self.time)
+        # self.ekf.update_car(self.z)
+        self.time = time
+
+        be,b,om,v = utils.split_state(self.ekf.get_state())
+        a = numpy.tan(be)
+
+        line_coeffs3 = LineCoeffs3()
+        line_coeffs3.header.stamp = self.curr_time()
+        line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
+
+        header = Header()
+        header.stamp = self.curr_time()
+        header.frame_id = self.base_link
+        points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
+
+        self.fcp.publish(line_coeffs3)
+        self.fpp.publish(points_coeffs3_pcl)
+
 
 if __name__ == '__main__':
-    freq = 10.0 # Hz
-    dt = 1.0/freq
-    l = 2.8498
-    # be = numpy.pi/4.0
+    rospy.init_node('filter')
+
+    ### LOADING PARAMETERS ###
+    cmd_vel_topic = rospy.get_param('topics/cmd_vel')
+    line_coeffs_topic = rospy.get_param('topics/line_coeffs')
+    filtered_line_coeffs_topic = rospy.get_param('topics/filtered_line_coeffs')
+    filtered_line_pcl_topic = rospy.get_param('topics/filtered_line_pcl')
+
+    base_link = rospy.get_param('tfs/base_link')
+
+    l = rospy.get_param('l')
+
+    q00 = rospy.get_param('kalman/q00')
+    q11 = rospy.get_param('kalman/q11')
+    q22 = rospy.get_param('kalman/q22')
+    q33 = rospy.get_param('kalman/q33')
+
+    r00 = rospy.get_param('kalman/r00')
+    r11 = rospy.get_param('kalman/r11')
+    r22 = rospy.get_param('kalman/r22')
+    r33 = rospy.get_param('kalman/r33')
+    ###
+
     be = 0.0
     b = 0.0
     om = 0.0
     v = 0.0
 
     x = numpy.matrix([[be], [b], [om], [v]])
+
     P = numpy.matrix([
                        [1e4, 0.0, 0.0, 0.0]
                       ,[0.0, 1e4, 0.0, 0.0]
                       ,[0.0, 0.0, 1e4, 0.0]
                       ,[0.0, 0.0, 0.0, 1e4]
                     ])
-    q00 = 1
-    q11 = 1
-    q22 = 1
-    q33 = 1
+
     Q = numpy.matrix([
                        [q00, 0.0, 0.0, 0.0]
                       ,[0.0, q11, 0.0, 0.0]
                       ,[0.0, 0.0, q22, 0.0]
                       ,[0.0, 0.0, 0.0, q33]
                     ])
-    r00 = 1
-    r11 = 1
-    r22 = 10
-    r33 = 10
+
     R = numpy.matrix([
                        [r00, 0.0, 0.0, 0.0]
                       ,[0.0, r11, 0.0, 0.0]
@@ -75,52 +139,15 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, 0.0, r33]
                     ])
 
-    ekf = EKF(dt,l,x,P,Q,R)
+    ekf = EKF(l,x,P,Q,R)
 
-    rospy.init_node('filter')
+    filtered_coeffs_pub = rospy.Publisher(filtered_line_coeffs_topic, LineCoeffs3, queue_size=10)
+    filtered_points_pub = rospy.Publisher(filtered_line_pcl_topic, PointCloud2, queue_size=10)
 
-    rospy.Subscriber('/car_command', CarCommand, car_state_callback)
-    # rospy.Subscriber('/mkz/twist', TwistStamped, car_state_callback)
+    filterr = Filterr(l,ekf,base_link,rospy.Time.now,filtered_coeffs_pub,filtered_points_pub)
 
-    rospy.Subscriber('bisector_coeffs', LineCoeffs3, line_state_callback)
+    rospy.Subscriber(line_coeffs_topic, LineCoeffs3, filterr.line_state_callback)
+    # rospy.Subscriber(cmd_vel_topic, CarCommand, filterr.car_state_callback)
+    # rospy.Subscriber('/test', CarCommand, filterr.car_state_callback)
 
-    rate = rospy.Rate(freq)
-
-    filtered_coeffs_pub = rospy.Publisher('filtered_bisector_coeffs', LineCoeffs3, queue_size=10)
-    filtered_points_pub = rospy.Publisher('filtered_bisector_pcl', PointCloud2, queue_size=10)
-
-    line_coeffs3 = LineCoeffs3()
-    header = Header()
-
-    while not rospy.is_shutdown():
-        if(received_line):
-            ekf.predict()
-
-            print 'measurement\n',z
-
-            print 'predict\n',ekf.get_state()
-
-            ekf.update(z)
-
-            print 'update'
-            print 'state\n',ekf.get_state()
-            print 'cov\n',ekf.P
-
-            be,b,om,v = utils.split_state(ekf.get_state())
-            a = numpy.tan(be)
-
-            print 'line\n',be,b,a
-
-            header.stamp = rospy.Time.now()
-            header.frame_id = "base_link"
-            points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
-
-            line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
-
-            line_coeffs3.header.stamp = rospy.Time.now()
-
-
-            filtered_coeffs_pub.publish(line_coeffs3)
-            filtered_points_pub.publish(points_coeffs3_pcl)
-        
-        rate.sleep()
+    rospy.spin()

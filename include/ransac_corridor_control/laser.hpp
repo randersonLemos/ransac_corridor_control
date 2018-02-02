@@ -10,7 +10,6 @@
 #include <tf/transform_listener.h>
 
 #include "utils.hpp"
-#include "kalman.hpp"
 #include "ransac2Dline.hpp"
 #include "handlePoints.hpp"
 #include "ransac_corridor_control/LineCoeffs3.h"
@@ -37,8 +36,6 @@ private:
 
     std::vector<float> filtered_bisector_line_coeffs;
 
-    //Kalman kalman;
-
     tf::TransformListener listener;
 
     static Laser *instance;
@@ -48,10 +45,6 @@ protected:
            ,const float _threshold
            ,const float _winWidth
            ,const float _winLength
-           //,const float _model_variance_11
-           //,const float _model_variance_22
-           //,const float _measure_variance_11
-           //,const float _measure_variance_22
            ,const bool _verbose
            ,const std::string _base_frame_tf
            ,const std::string _laser_frame_tf
@@ -63,16 +56,6 @@ protected:
            ,base_frame_tf(_base_frame_tf)
            ,laser_frame_tf(_laser_frame_tf)
            ,hp( _winWidth, _winLength)
-           //,kalman( _model_variance_11
-                   //,_model_variance_22
-                   //,_measure_variance_11
-                   //,_measure_variance_22
-                   //,(Eigen::Vector4f() <<  0.0, 0.0, 0.0, 0.0).finished()
-                   //,(Eigen::Matrix4f() <<  0.0, 0.0, 0.0, 0.0
-                                          //,0.0, 1e6, 0.0, 0.0
-                                          //,0.0, 0.0, 0.0, 0.0
-                                          //,0.0, 0.0, 0.0, 1e6).finished()
-                  //)
            ,filtered_bisector_line_coeffs(3, 0.0)
            ,listener(ros::Duration(10))
           {}
@@ -84,10 +67,6 @@ public:
                                   ,const float _threshold
                                   ,const float _winWidth
                                   ,const float _winLength
-                                  //,const float _model_variance_11
-                                  //,const float _model_variance_22
-                                  //,const float _measure_variance_11
-                                  //,const float _measure_variance_22
                                   ,const bool _verbose
                                   ,const std::string _base_frame_tf
                                   ,const std::string _laser_frame_tf
