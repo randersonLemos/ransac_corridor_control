@@ -52,7 +52,6 @@ class Filterr(object):
         self.publisher()
 
     def publisher(self):
-        # be,b,om,v = utils.split_state(self.ekf.get_state())
         be,b,om,al,v,a = utils.split_state(self.ekf.get_state())
         aa = numpy.tan(be)
 
@@ -85,6 +84,8 @@ if __name__ == '__main__':
 
     l = rospy.get_param('l')
 
+    verbose = rospy.get_param('kalman/verbose')
+
     q00 = rospy.get_param('kalman/q00')
     q11 = rospy.get_param('kalman/q11')
     q22 = rospy.get_param('kalman/q22')
@@ -103,29 +104,16 @@ if __name__ == '__main__':
     v = 0.0
     a = 0.0
 
-    # x = numpy.matrix([[be], [b], [om], [v]])
     x = numpy.matrix([[be], [b], [om], [al], [v], [a]])
 
-    # P = numpy.matrix([
-                       # [1e4, 0.0, 0.0, 0.0]
-                      # ,[0.0, 1e4, 0.0, 0.0]
-                      # ,[0.0, 0.0, 1e4, 0.0]
-                      # ,[0.0, 0.0, 0.0, 1e4]
-                    # ])
     P = numpy.matrix([
-                       [1e4, 1e4, 0.0, 0.0, 0.0, 0.0]
-                      ,[1e4, 1e4, 0.0, 0.0, 0.0, 0.0]
-                      ,[0.0, 0.0, 1e4, 1e4, 0.0, 0.0]
-                      ,[0.0, 0.0, 1e4, 1e4, 0.0, 0.0]
-                      ,[0.0, 0.0, 0.0, 0.0, 1e4, 1e4]
-                      ,[0.0, 0.0, 0.0, 0.0, 1e4, 1e4]])
+                       [1e4, 0.0, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 1e4, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 1e4, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 1e4, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 1e4, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 0.0, 1e4]])
 
-    # Q = numpy.matrix([
-                       # [q00, 0.0, 0.0, 0.0]
-                      # ,[0.0, q11, 0.0, 0.0]
-                      # ,[0.0, 0.0, q22, 0.0]
-                      # ,[0.0, 0.0, 0.0, q33]
-                    # ])
     Q = numpy.matrix([
                        [q00, 0.0, 0.0, 0.0, 0.0, 0.0]
                       ,[0.0, q11, 0.0, 0.0, 0.0, 0.0]
@@ -140,10 +128,10 @@ if __name__ == '__main__':
                       ,[0.0, 0.0, 0.0, r33]
                     ])
 
-    ekf = EKF(l,x,P,Q,R)
+    ekf = EKF(l,x,P,Q,R,verbose)
 
-    filtered_coeffs_pub = rospy.Publisher(filtered_line_coeffs_topic, LineCoeffs3, queue_size=10)
-    filtered_points_pub = rospy.Publisher(filtered_line_pcl_topic, PointCloud2, queue_size=10)
+    filtered_coeffs_pub = rospy.Publisher(filtered_line_coeffs_topic, LineCoeffs3, queue_size=5)
+    filtered_points_pub = rospy.Publisher(filtered_line_pcl_topic, PointCloud2, queue_size=5)
 
     filterr = Filterr(l,ekf,base_link,rospy.Time.now,filtered_coeffs_pub,filtered_points_pub)
 
@@ -151,11 +139,14 @@ if __name__ == '__main__':
     car_sub = message_filters.Subscriber(cmd_vel_topic, CarCommand)
     # car_sub = message_filters.Subscriber('/mkz/twist', TwistStamped)
 
-    ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 1, 0.1)
+    ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 5, 0.150)
     ts.registerCallback(filterr.callback)
 
-    while not filterr.was_called():
-        car_command_pub = rospy.Publisher(cmd_vel_topic, CarCommand, queue_size=10)
+    start_time = rospy.Time.now()
+    duration = rospy.Duration(5.0)
+    # while not filterr.was_called():
+    while rospy.Time.now() - start_time < duration:
+        car_command_pub = rospy.Publisher(cmd_vel_topic, CarCommand, queue_size=5)
         header = Header()
         header.stamp = rospy.Time.now()
         car_command_msg = CarCommand()

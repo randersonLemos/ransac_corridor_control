@@ -2,13 +2,13 @@ import numpy
 import utils
 
 class EKF(object):
-    def __init__(self, l, x, P, Q, R):
+    def __init__(self, l, x, P, Q, R, verbose):
         self.l = l
         self.x = x
         self.P = P
         self.Q = Q
         self.R = R
-        # self.I = numpy.matrix(numpy.identity(4))
+        self.verbose = verbose
         self.I = numpy.matrix(numpy.identity(6))
 
         print 'EKF parameters...'
@@ -22,44 +22,20 @@ class EKF(object):
 
 
     def f(self, x, dt):
-        # be,b,om,v = utils.split_state(x)
         be,b,om,al,v,a = utils.split_state(x)
         tan = numpy.tan
-        # return numpy.matrix([
-                             # [be - dt*om]
-                            # ,[b + dt**2*om*v + (-b*dt*om + dt*v)*tan(be - dt*om)]
-                            # ,[0.80*om]
-                            # ,[1.00*v]
-                           # ])
         return numpy.matrix([
                              [be - dt*om]
                             ,[b + dt**2*om*v + (-b*dt*om + dt*v)*tan(be - dt*om)]
                             ,[om+al*dt]
                             ,[al]
                             ,[v+a*dt]
-                            ,[a]])
-
+                            ,[a]
+                           ])
 
     def F(self, x, dt):
-        # be,b,om,v = utils.split_state(x)
         be,b,om,al,v,a = utils.split_state(x)
         tan = numpy.tan
-        # return numpy.matrix([
-                             # [1, 0, -dt, 0]
-                            # ,[(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1), -dt*om*tan(be - dt*om) + 1, -b*dt*tan(be - dt*om) + dt**2*v - dt*(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1), dt**2*om + dt*tan(be - dt*om)]
-                            # ,[0, 0, 0.80, 0]
-                            # ,[0, 0, 0, 1.00]
-                           # ])
-
-        # return numpy.matrix([
-                             # [1.0, 0.0, -dt, 0.0, 0.0, 0.0]
-                            # ,[(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1), -dt*om*tan(be - dt*om) + 1, -b*dt*tan(be - dt*om) + dt**2*v - dt*(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1), 0.0, dt**2*om + dt*tan(be - dt*om), 0.0]
-                            # ,[0.0, 0.0, 0.0, dt, 0.0, 0.0]
-                            # ,[0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
-                            # ,[0.0, 0.0, 0.0, 0.0, 0.0, dt]
-                            # ,[0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-                           # ])
-
         return numpy.matrix([
                               [1.0, 0.0, -dt, 0.0, 0.0, 0.0]
                              ,[(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1.0), -dt*om*tan(be - dt*om) + 1.0, -b*dt*tan(be - dt*om) + dt**2*v - dt*(-b*dt*om + dt*v)*(tan(be - dt*om)**2 + 1.0), 0.0, dt**2*om + dt*tan(be - dt*om), 0.0]
@@ -69,10 +45,7 @@ class EKF(object):
                              ,[0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
                             ])
 
-
-
-    def h(self,x):
-        # be,b,om,v = utils.split_state(x)
+    def h(self, x):
         be,b,om,al,v,a = utils.split_state(x)
         return numpy.matrix([
                              [be]
@@ -82,13 +55,6 @@ class EKF(object):
                            ])
 
     def H(self,x):
-        # be,b,om,al,v,a = utils.split_state(x)
-        # return numpy.matrix([
-                             # [1.0, 0.0, 0.0, 0.0]
-                            # ,[0.0, 1.0, 0.0, 0.0]
-                            # ,[0.0, 0.0, 1.0, 0.0]
-                            # ,[0.0, 0.0, 0.0, 1.0]
-                           # ])
         return numpy.matrix([
                               [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                              ,[0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
@@ -97,34 +63,40 @@ class EKF(object):
                             ])
 
     def predict(self, dt):
-        print 'predict'
-        print 'dt',dt
-        print 'x: \n', self.x
-        print 'P: \n', self.P
+        if self.verbose:
+            print 'predict'
+            print 'dt',dt
+            print 'x: \n', self.x
+            print 'P: \n', self.P
 
-        self.x = self.f(self.x, dt)
         self.P = self.F(self.x, dt)*self.P*self.F(self.x, dt).transpose() + self.Q
-        print 'x: \n', self.x
-        print 'P: \n', self.P
+        self.x = self.f(self.x, dt)
+        if self.verbose:
+            print 'x: \n', self.x
+            print 'P: \n', self.P
 
     def update(self, z):
-        print 'update'
-        print 'z: \n',z
-        print 'x: \n',self.x
-        print 'P: \n',self.P
+        if self.verbose:
+            print 'update'
+            print 'z: \n',z
+            print 'x: \n',self.x
+            print 'P: \n',self.P
 
         inov = z - self.h(self.x) # innovation
-        print 'inov: \n',inov
+        if self.verbose:
+            print 'inov: \n',inov
 
         S = self.H(self.x)*self.P*self.H(self.x).transpose() + self.R
         K = self.P*self.H(self.x).transpose()*numpy.linalg.inv(S)
-        print 'S: \n',S
-        print 'inv(s): \n', numpy.linalg.inv(S)
-        print 'K: \n',K
+        if self.verbose:
+            print 'S: \n',S
+            print 'inv(s): \n', numpy.linalg.inv(S)
+            print 'K: \n',K
 
         self.P = (self.I - K*self.H(self.x))*self.P # updated covariance estimate
         self.x = self.x + K*inov # updated state estimate
-        print 'x: \n',self.x
+        if self.verbose:
+            print 'x: \n',self.x
 
     def get_state(self):
         return self.x
