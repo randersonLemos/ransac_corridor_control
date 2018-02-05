@@ -72,6 +72,6 @@ int main(int argc, char **argv){
       ros::spinOnce();
       r.sleep();
     }
-
+    //ros::spin();
     return 0;
 }

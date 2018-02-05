@@ -1,10 +1,10 @@
-def fromThree2Two(coeffs):
-  a = -float(coeffs[0]/(coeffs[1] + 1e-4)) # angular coefficient
-  b = -float(coeffs[2]/(coeffs[1] + 1e-4)) # linear coefficient
+def three_to_two_coeffs(coeffs):
+  a = -float(coeffs[0]/(coeffs[1] + 1e-6)) # angular coefficient
+  b = -float(coeffs[2]/(coeffs[1] + 1e-6)) # linear coefficient
   return (a,b)
 
 
-def fromTwo2Three(coeffs):
+def two_to_three_coeffs(coeffs):
   a = -float(coeffs[0])
   b = 1.0
   c = -float(coeffs[1])
@@ -14,7 +14,7 @@ def fromTwo2Three(coeffs):
 def points_from_coeffs2(coeffs,npts,scale):
     a = coeffs[0]
     b = coeffs[1]
-    print 'python: a={}, b={}'.format(a,b)
+    # print 'python: a={}, b={}'.format(a,b)
     lst = []
     # for i in xrange(npts):
     # for i in xrange(int(npts/2),int(npts/2)):

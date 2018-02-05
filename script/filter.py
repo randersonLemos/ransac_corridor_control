@@ -2,6 +2,7 @@
 import rospy
 import numpy
 import utils
+import message_filters
 import sensor_msgs.point_cloud2 as pcl2
 from kalman import EKF
 from ransac_corridor_control.msg import LineCoeffs3
@@ -18,73 +19,57 @@ class Filterr(object):
         self.fpp = filtered_points_pub
         self.base_link = base_link
         self.curr_time = curr_time # a function
-        self.z = numpy.matrix([[0.0], [0.0]])
-        self.first_call = True
+        self.z = numpy.matrix([[0.0], [0.0], [0.0], [0.0]])
+        self.called = False
         self.time = 0.0
 
-    def line_state_callback(self,data):
-        if self.first_call:
-            self.time = data.header.stamp.to_sec()
-            self.first_call = False
+    def callback(self, line_data, car_data):
+        if not self.called:
+            # self.time = data.header.stamp.to_sec()
+            self.time = self.curr_time().to_sec()
+            self.called = True
             return
 
-        if not (numpy.isnan(data.coeffs[0]) or numpy.isnan(data.coeffs[1]) or numpy.isnan(data.coeffs[2])):
-            # time = data.header.stamp.to_sec()
-            time = self.curr_time().to_sec()
-            a,b = utils.fromThree2Two(data.coeffs)
-            self.z[0,0] = numpy.arctan(a)
-            self.z[1,0] = b
-
-            # self.ekf.predict(time - self.time)
-            self.ekf.update_line(self.z)
-            self.time = time
-
-            be,b,om,v = utils.split_state(self.ekf.get_state())
-            a = numpy.tan(be)
-
-            line_coeffs3 = LineCoeffs3()
-            line_coeffs3.header.stamp = self.curr_time()
-            line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
-
-            header = Header()
-            header.stamp = self.curr_time()
-            header.frame_id = self.base_link
-            points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
-
-            self.fcp.publish(line_coeffs3)
-            self.fpp.publish(points_coeffs3_pcl)
-
-    def car_state_callback(self,data):
-        if self.first_call:
-            self.time = data.header.stamp.to_sec()
-            self.first_call = False
-            return
-
-        # time = data.header.stamp.to_sec()
         time = self.curr_time().to_sec()
-        v = (data.speedLeft + data.speedRight)/2.0
-        om = numpy.tan(data.steerAngle)*v/self.l
-        self.z[0,0] = om
-        self.z[1,0] = v
-
         self.ekf.predict(time - self.time)
-        # self.ekf.update_car(self.z)
         self.time = time
 
-        be,b,om,v = utils.split_state(self.ekf.get_state())
-        a = numpy.tan(be)
+        aa,b = utils.three_to_two_coeffs(line_data.coeffs)
+        be = numpy.arctan(aa)
+        v = (car_data.speedLeft + car_data.speedRight)/2.0
+        om = numpy.tan(car_data.steerAngle)*v/self.l
+        # om = car_data.twist.angular.z
+        # v = car_data.twist.linear.x
+
+        if not (numpy.isnan(a) or numpy.isnan(b)):
+            self.z[0,0] = be
+            self.z[1,0] = b
+            self.z[2,0] = om
+            self.z[3,0] = v
+
+            self.ekf.update(self.z)
+
+        self.publisher()
+
+    def publisher(self):
+        # be,b,om,v = utils.split_state(self.ekf.get_state())
+        be,b,om,al,v,a = utils.split_state(self.ekf.get_state())
+        aa = numpy.tan(be)
 
         line_coeffs3 = LineCoeffs3()
         line_coeffs3.header.stamp = self.curr_time()
-        line_coeffs3.coeffs = utils.fromTwo2Three((a,b))
+        line_coeffs3.coeffs = utils.two_to_three_coeffs((aa,b))
 
         header = Header()
         header.stamp = self.curr_time()
         header.frame_id = self.base_link
-        points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((a,b),30,0.5))
+        points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((aa,b),30,0.5))
 
         self.fcp.publish(line_coeffs3)
         self.fpp.publish(points_coeffs3_pcl)
+
+    def was_called(self):
+        return self.called
 
 
 if __name__ == '__main__':
@@ -114,28 +99,44 @@ if __name__ == '__main__':
     be = 0.0
     b = 0.0
     om = 0.0
+    al = 0.0
     v = 0.0
+    a = 0.0
 
-    x = numpy.matrix([[be], [b], [om], [v]])
+    # x = numpy.matrix([[be], [b], [om], [v]])
+    x = numpy.matrix([[be], [b], [om], [al], [v], [a]])
 
+    # P = numpy.matrix([
+                       # [1e4, 0.0, 0.0, 0.0]
+                      # ,[0.0, 1e4, 0.0, 0.0]
+                      # ,[0.0, 0.0, 1e4, 0.0]
+                      # ,[0.0, 0.0, 0.0, 1e4]
+                    # ])
     P = numpy.matrix([
-                       [1e4, 0.0, 0.0, 0.0]
-                      ,[0.0, 1e4, 0.0, 0.0]
-                      ,[0.0, 0.0, 1e4, 0.0]
-                      ,[0.0, 0.0, 0.0, 1e4]
-                    ])
+                       [1e4, 1e4, 0.0, 0.0, 0.0, 0.0]
+                      ,[1e4, 1e4, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 1e4, 1e4, 0.0, 0.0]
+                      ,[0.0, 0.0, 1e4, 1e4, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 1e4, 1e4]
+                      ,[0.0, 0.0, 0.0, 0.0, 1e4, 1e4]])
 
+    # Q = numpy.matrix([
+                       # [q00, 0.0, 0.0, 0.0]
+                      # ,[0.0, q11, 0.0, 0.0]
+                      # ,[0.0, 0.0, q22, 0.0]
+                      # ,[0.0, 0.0, 0.0, q33]
+                    # ])
     Q = numpy.matrix([
-                       [q00, 0.0, 0.0, 0.0]
-                      ,[0.0, q11, 0.0, 0.0]
-                      ,[0.0, 0.0, q22, 0.0]
-                      ,[0.0, 0.0, 0.0, q33]
-                    ])
-
+                       [q00, 0.0, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, q11, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, q22, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                      ,[0.0, 0.0, 0.0, 0.0, 0.0, q33]])
     R = numpy.matrix([
-                       [r00, 0.0, 0.0, 0.0]
+                       [r00, 0.0, 1.0, 0.0]
                       ,[0.0, r11, 0.0, 0.0]
-                      ,[0.0, 0.0, r22, 0.0]
+                      ,[1.0, 0.0, r22, 0.0]
                       ,[0.0, 0.0, 0.0, r33]
                     ])
 
@@ -146,8 +147,22 @@ if __name__ == '__main__':
 
     filterr = Filterr(l,ekf,base_link,rospy.Time.now,filtered_coeffs_pub,filtered_points_pub)
 
-    rospy.Subscriber(line_coeffs_topic, LineCoeffs3, filterr.line_state_callback)
-    # rospy.Subscriber(cmd_vel_topic, CarCommand, filterr.car_state_callback)
-    # rospy.Subscriber('/test', CarCommand, filterr.car_state_callback)
+    line_sub = message_filters.Subscriber(line_coeffs_topic, LineCoeffs3)
+    car_sub = message_filters.Subscriber(cmd_vel_topic, CarCommand)
+    # car_sub = message_filters.Subscriber('/mkz/twist', TwistStamped)
+
+    ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 1, 0.1)
+    ts.registerCallback(filterr.callback)
+
+    while not filterr.was_called():
+        car_command_pub = rospy.Publisher(cmd_vel_topic, CarCommand, queue_size=10)
+        header = Header()
+        header.stamp = rospy.Time.now()
+        car_command_msg = CarCommand()
+        car_command_msg.header = header
+        car_command_msg.speedLeft = 0.0
+        car_command_msg.speedRight = 0.0
+        car_command_msg.steerAngle = 0.0
+        car_command_pub.publish(car_command_msg)
 
     rospy.spin()

@@ -105,13 +105,14 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         std::vector<float> bisector_line_coeffs = utils::bisectrixLine(left_line_coeffs, right_line_coeffs); // Bisectrix coefficients
 
         // Publishing messages
-        ros::Time timestamp = ros::Time::now();
 
         pcl::PointCloud<pcl::PointXYZ> line;
 
         utils::addLineToPointcloud(bisector_line_coeffs, line);
         utils::addLineToPointcloud(left_line_coeffs, line);
         utils::addLineToPointcloud(right_line_coeffs, line);
+
+        ros::Time timestamp = ros::Time::now();
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(line, line_msg);
@@ -121,10 +122,9 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
         ransac_corridor_control::LineCoeffs3 bisector_line_msg;
         bisector_line_msg.header.stamp = ros::Time::now();
-        bisector_line_coeffs[0] /= bisector_line_coeffs[1];
         bisector_line_coeffs[2] /= bisector_line_coeffs[1];
         bisector_line_coeffs[1] /= bisector_line_coeffs[1];
-        
+
         bisector_line_msg.coeffs = bisector_line_coeffs;
         bisector_line_pub.publish(bisector_line_msg);
     }
