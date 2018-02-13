@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 
-#include "controlPIV.hpp"
+#include "control_piv.hpp"
 #include "ransac_corridor_control/CarCommand.h"
 #include "ransac_corridor_control/LineCoeffs3.h"
 
@@ -39,10 +39,10 @@ protected:
     while(!ros::Time::now().toSec()){
        if(print){
           print = false;
-          ROS_INFO("Waiting for time");
+          ROS_INFO("Control node --> waiting for time");
        }
     }
-    ROS_INFO("Time received");
+    ROS_INFO("Control node --> time received");
     linear_vel = 0.0;
     angular_vel = 0.0;
     start_time = ros::Time::now();

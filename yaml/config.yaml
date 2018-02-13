@@ -1,9 +1,9 @@
 l: 2.8498 # distance between car axle
 laser:
   verbose: false
-  window_width: 20.0
+  window_width: 35.0
   window_length: 60.0
-  threshold: 3.5
+  threshold: 2.5
 control:
   kpt: 0.1
   kit: 0.001
@@ -29,9 +29,9 @@ topics:
   filtered_line_pcl: "filtered_bisector_pcl"
   line_coeffs: "bisector_coeffs"
   filtered_line_coeffs: "filtered_bisector_coeffs"
+  points_ransac: "points_ransac"
   laser_scan: "scan"
   cmd_vel: "car_command"
 tfs:
-  base_link: "mkz/base_link"
-  laser_link: "mkz/hokuyo_link"
-
+  base_link: "base_link"
+  laser_link: "scan_link"

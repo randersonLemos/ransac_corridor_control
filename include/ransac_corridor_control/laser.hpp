@@ -10,21 +10,18 @@
 #include <tf/transform_listener.h>
 
 #include "utils.hpp"
-#include "ransac2Dline.hpp"
-#include "handlePoints.hpp"
+#include "ransac_2D_line.hpp"
+#include "handle_points.hpp"
 #include "ransac_corridor_control/LineCoeffs3.h"
-
-#include "Eigen/Dense"
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-
 #include <sensor_msgs/PointCloud2.h>
 
 class Laser{
 private:
-    ros::Publisher bisector_line_pub, lines_pcl_pub;
+    ros::Publisher bisector_line_pub, lines_pcl_pub, points_ransac_pub;
 
     float threshold;
 
@@ -42,6 +39,7 @@ private:
 protected:
     Laser ( const ros::Publisher &_bisector_line_pub
            ,const ros::Publisher &_lines_pcl_pub
+           ,const ros::Publisher &_points_ransac_pub
            ,const float _threshold
            ,const float _winWidth
            ,const float _winLength
@@ -51,6 +49,7 @@ protected:
           ):
             bisector_line_pub(_bisector_line_pub)
            ,lines_pcl_pub(_lines_pcl_pub)
+           ,points_ransac_pub(_points_ransac_pub)
            ,threshold(_threshold)
            ,verbose(_verbose)
            ,base_frame_tf(_base_frame_tf)
@@ -64,6 +63,7 @@ protected:
 public:
     static Laser* unique_instance( const ros::Publisher &_bisector_line_pub
                                   ,const ros::Publisher &_lines_pcl_pub
+                                  ,const ros::Publisher &_points_ransac_pub
                                   ,const float _threshold
                                   ,const float _winWidth
                                   ,const float _winLength

@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <rosparam file="$(find ransac_corridor_control)/yaml/config.yaml" ns="ransac" />
-  <node pkg = "ransac_corridor_control" type = "control_node" name = "control_node" output="screen" ns="ransac" />
-
-</launch>

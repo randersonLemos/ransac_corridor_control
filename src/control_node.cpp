@@ -15,38 +15,21 @@ void ctrl_handler(int /*x*/){
 int main(int argc, char **argv){
     ros::init(argc, argv, "control_node");
     ros::NodeHandle n;
-    ros::NodeHandle nh("~");
 
     /* LOADING PARAMETERS */
     /* Parameters for the class Control, from where the control code is executed */
     double kpt, kit, krt, kvt, ramp_time, max_lin_vel;
-    if(!nh.getParam("/ransac/control/kpt", kpt)){
-        ROS_ERROR("Failed to get param '/ransac/control/kpt'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/control/kit", kit)){
-        ROS_ERROR("Failed to get param '/ransac/control/kit'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/control/krt", krt)){
-        ROS_ERROR("Failed to get param '/ransac/control/krt'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/control/kvt", kvt)){
-        ROS_ERROR("Faild to get param '/ransac/control/kvt'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/control/ramp_time", ramp_time)){
-        ROS_ERROR("Failed to get param '/ransac/control/ramp_time'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/control/max_lin_vel", max_lin_vel)){
-        ROS_ERROR("Failed to get param '/ransac/control/max_lin_vel'"); exit(0);
-    }
+    n.getParam("control/kpt", kpt);
+    n.getParam("control/kit", kit);
+    n.getParam("control/krt", krt);
+    n.getParam("control/kvt", kvt);
+    n.getParam("control/ramp_time", ramp_time);
+    n.getParam("control/max_lin_vel", max_lin_vel);
     /* Parameters for topic names*/
     std::string filtered_line_coeffs_topic,
                 cmd_vel_topic;
-    if(!nh.getParam("/ransac/topics/filtered_line_coeffs", filtered_line_coeffs_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/filtered_line_coeffs'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/topics/cmd_vel", cmd_vel_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/cmd_vel'"); exit(0);
-    }
+    n.getParam("topics/filtered_line_coeffs", filtered_line_coeffs_topic);
+    n.getParam("topics/cmd_vel", cmd_vel_topic);
 
     ros::Publisher cmd_vel_pub;
     cmd_vel_pub = n.advertise<ransac_corridor_control::CarCommand>(cmd_vel_topic, 1);
