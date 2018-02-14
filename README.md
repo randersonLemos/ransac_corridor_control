@@ -3,7 +3,7 @@ ROS package `ransac_corridor_control` repository. This package approaches the pr
 
 * Example of rows of plantation:
 
-![GitHub Logo](others/plantation.png)
+![plantation-row](others/plantation.png)
 
 ## Installation
 Just clone the repository into a ROS workspace and compile it with `catkin_make`.
@@ -81,18 +81,18 @@ The control command to the low-level platform control implementations are sent b
 
 It is possible to convert from **CarCommand** message to **geometry_msgs/Twist** with the equations
 
-\\[ v = ( v_{left} + v_{right} )/2  \\]
+![linear-velocity-eqn](others/linear-velocity-eqn.gif)
 
-\\[ \omega =  \tan(\phi) * v / L  \\],
+![angular-velocity-eqn](others/angular-velocity-eqn.gif)
 
 where:
 
-* \[v_{left}\] is the left wheel speed
-* \[v_{right}\] is the right wheel speed
-* \[v\] is the linear velocity (it goes in the field linear.x of the Twist message)
-* \[\phi\] is the steering angle
-* \[L\] is the distance between the axle car
-* \[\omega\] is the angular velocity (it goes in the field angular.z of the Twist message)
+* ![left-wheel-velocity](others/left-wheel-velocity.gif) is the left wheel speed
+* ![right-wheel-velocity](others/right-wheel-velocity.gif) is the right wheel speed
+* ![linear-velocity](others/linear-velocity.gif) is the linear velocity (it goes in the field linear.x of the Twist message)
+* ![steering-angle](others/steering-angle.gif) is the steering angle
+* ![axles-distance](others/axles-distance.gif) is the distance between the axle car
+* ![angular-velocity](others/angular-velocity.gif) is the angular velocity (it goes in the field angular.z of the Twist message)
 
 ### Parameters
 All setting parameters are available to customization in the file `yaml/config.yaml`. Some parameters are:
