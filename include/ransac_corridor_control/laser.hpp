@@ -10,22 +10,18 @@
 #include <tf/transform_listener.h>
 
 #include "utils.hpp"
-#include "kalman.hpp"
-#include "ransac2Dline.hpp"
-#include "handlePoints.hpp"
+#include "ransac_2D_line.hpp"
+#include "handle_points.hpp"
 #include "ransac_corridor_control/LineCoeffs3.h"
-
-#include "Eigen/Dense"
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-
 #include <sensor_msgs/PointCloud2.h>
 
 class Laser{
 private:
-    ros::Publisher bisector_line_pub, lines_pcl_pub;
+    ros::Publisher bisector_line_pub, lines_pcl_pub, points_ransac_pub;
 
     float threshold;
 
@@ -37,42 +33,28 @@ private:
 
     std::vector<float> filtered_bisector_line_coeffs;
 
-    //Kalman kalman;
-
     tf::TransformListener listener;
 
     static Laser *instance;
 protected:
     Laser ( const ros::Publisher &_bisector_line_pub
            ,const ros::Publisher &_lines_pcl_pub
+           ,const ros::Publisher &_points_ransac_pub
            ,const float _threshold
            ,const float _winWidth
            ,const float _winLength
-           //,const float _model_variance_11
-           //,const float _model_variance_22
-           //,const float _measure_variance_11
-           //,const float _measure_variance_22
            ,const bool _verbose
            ,const std::string _base_frame_tf
            ,const std::string _laser_frame_tf
           ):
             bisector_line_pub(_bisector_line_pub)
            ,lines_pcl_pub(_lines_pcl_pub)
+           ,points_ransac_pub(_points_ransac_pub)
            ,threshold(_threshold)
            ,verbose(_verbose)
            ,base_frame_tf(_base_frame_tf)
            ,laser_frame_tf(_laser_frame_tf)
            ,hp( _winWidth, _winLength)
-           //,kalman( _model_variance_11
-                   //,_model_variance_22
-                   //,_measure_variance_11
-                   //,_measure_variance_22
-                   //,(Eigen::Vector4f() <<  0.0, 0.0, 0.0, 0.0).finished()
-                   //,(Eigen::Matrix4f() <<  0.0, 0.0, 0.0, 0.0
-                                          //,0.0, 1e6, 0.0, 0.0
-                                          //,0.0, 0.0, 0.0, 0.0
-                                          //,0.0, 0.0, 0.0, 1e6).finished()
-                  //)
            ,filtered_bisector_line_coeffs(3, 0.0)
            ,listener(ros::Duration(10))
           {}
@@ -81,13 +63,10 @@ protected:
 public:
     static Laser* unique_instance( const ros::Publisher &_bisector_line_pub
                                   ,const ros::Publisher &_lines_pcl_pub
+                                  ,const ros::Publisher &_points_ransac_pub
                                   ,const float _threshold
                                   ,const float _winWidth
                                   ,const float _winLength
-                                  //,const float _model_variance_11
-                                  //,const float _model_variance_22
-                                  //,const float _measure_variance_11
-                                  //,const float _measure_variance_22
                                   ,const bool _verbose
                                   ,const std::string _base_frame_tf
                                   ,const std::string _laser_frame_tf

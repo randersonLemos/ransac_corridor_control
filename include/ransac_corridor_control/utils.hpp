@@ -19,13 +19,13 @@ namespace utils{
  * @param l2 Coeficientes da reta para o cálculo da bissetriz
  * @return Os coeficientes da reta bissetriz
 */
-std::vector<float> bisectrixLine(std::vector<float> l1, std::vector<float> l2);
+std::vector<float> bisectrixLine(const std::vector<float>& l1, const std::vector<float>& l2);
 
-std::vector<float> fromThree2TwoCoeffs(std::vector<float> _coeffs);
+std::vector<float> fromThree2TwoCoeffs(const std::vector<float>& _coeffs);
 
-std::vector<float> fromTwo2ThreeCoeffs(std::vector<float> _coeffs);
+std::vector<float> fromTwo2ThreeCoeffs(const std::vector<float>& _coeffs);
 
-void addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line);
+void addLineToPointcloud(const std::vector<float>& coeffs, pcl::PointCloud<pcl::PointXYZ>& line);
 
 }
 

@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-std::vector<float> utils::bisectrixLine(std::vector<float> l1, std::vector<float> l2){
+std::vector<float> utils::bisectrixLine(const std::vector<float>& l1,const std::vector<float>& l2){
 
     std::vector<float> bisectrix(3), V1(2), V2(2), VY(2);
     float a1, b1, c1, a2, b2, c2;
@@ -64,14 +64,14 @@ std::vector<float> utils::bisectrixLine(std::vector<float> l1, std::vector<float
     return bisectrix;
 } /* bisectrixLine */
 
-std::vector<float> utils::fromThree2TwoCoeffs(std::vector<float> _coeffs){
+std::vector<float> utils::fromThree2TwoCoeffs(const std::vector<float>& _coeffs){
     std::vector<float> coeffs(2);
     coeffs[0] = -_coeffs[0]/(_coeffs[1] + 1e-6); // Angular coefficient
     coeffs[1] = -_coeffs[2]/(_coeffs[1] + 1e-6); // Linear coefficient
     return coeffs;
 }
 
-std::vector<float> utils::fromTwo2ThreeCoeffs(std::vector<float> _coeffs){
+std::vector<float> utils::fromTwo2ThreeCoeffs(const std::vector<float>& _coeffs){
     std::vector<float> coeffs(3);
     coeffs[0] = -_coeffs[0];
     coeffs[1] = 1.0;
@@ -79,12 +79,14 @@ std::vector<float> utils::fromTwo2ThreeCoeffs(std::vector<float> _coeffs){
     return coeffs;
 }
 
-void utils::addLineToPointcloud(std::vector<float> coeffs, pcl::PointCloud<pcl::PointXYZ>& line){
+void utils::addLineToPointcloud(const std::vector<float>& coeffs, pcl::PointCloud<pcl::PointXYZ>& line){
 
     float a, b, c;
     a = coeffs[0];
     b = coeffs[1];
     c = coeffs[2];
+
+    //std::cout << "a=" << a/b << " b=" << b/b << " c=" << c/b << std::endl;
 
     for(int i = 0; i < 30; ++i){
         pcl::PointXYZ p;

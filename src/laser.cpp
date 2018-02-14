@@ -4,13 +4,10 @@ Laser *Laser::instance = 0;
 
 Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                               ,const ros::Publisher &_lines_pcl_pub
+                              ,const ros::Publisher &_points_ransac_pub
                               ,const float _threshold
                               ,const float _winWidth
                               ,const float _winLength
-                              //,const float _model_variance_11
-                              //,const float _model_variance_22
-                              //,const float _measure_variance_11
-                              //,const float _measure_variance_22
                               ,const bool _verbose
                               ,const std::string _base_frame_tf
                               ,const std::string _laser_frame_id
@@ -18,13 +15,10 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
     if(instance == 0){
         instance = new Laser( _bisector_line_pub
                              ,_lines_pcl_pub
+                             ,_points_ransac_pub
                              ,_threshold
                              ,_winWidth
                              ,_winLength
-                             //,_model_variance_11
-                             //,_model_variance_22
-                             //,_measure_variance_11
-                             //,_measure_variance_22
                              ,_verbose
                              ,_base_frame_tf
                              ,_laser_frame_id
@@ -35,34 +29,51 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
 
 void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
 
-    std::vector<float> x_left, x_right, y_left, y_right; //vars to hold points inside window of interest
+    unsigned int maximum_size = msg.ranges.size(); // maximum possible size
+    unsigned int left_points_size = 0; // size
+    unsigned int right_points_size = 0; // size
+
+    float **pp_left_points;
+    pp_left_points = new float*[maximum_size];
+    for(unsigned int i = 0; i < maximum_size; ++i){
+        pp_left_points[i] = new float[2];
+        pp_left_points[i][0]  = 0.0;
+        pp_left_points[i][1]  = 0.0;
+    }
+    float **pp_right_points;
+    pp_right_points = new float*[maximum_size];
+    for(unsigned int i = 0; i < maximum_size; ++i){
+        pp_right_points[i] = new float[2];
+        pp_right_points[i][0] = 0.0;
+        pp_right_points[i][1] = 0.0;
+    }
 
     for(unsigned int i = 0; i < msg.ranges.size(); ++i){
         if(msg.ranges[i] < msg.range_max && msg.ranges[i] > msg.range_min){
-            float theta = msg.angle_min + i * msg.angle_increment;
-            float arr[] = {msg.ranges[i] * cos(theta), msg.ranges[i] * sin(theta)};
+            float th = msg.angle_min + i * msg.angle_increment;
 
-            geometry_msgs::PointStamped laser_point;
-            laser_point.header.stamp = ros::Time::now();
-            laser_point.header.frame_id = msg.header.frame_id;
-            laser_point.point.x = arr[0];
-            laser_point.point.y = arr[1];
+            geometry_msgs::PointStamped laser_point_msg;
+            laser_point_msg.header.stamp = ros::Time::now();
+            laser_point_msg.header.frame_id = msg.header.frame_id;
+            laser_point_msg.point.x = msg.ranges[i] * cos(th);
+            laser_point_msg.point.y = msg.ranges[i] * sin(th);
 
             try{
-                geometry_msgs::PointStamped vero_point;
+                geometry_msgs::PointStamped vero_point_msg;
                 listener.waitForTransform(base_frame_tf, laser_frame_tf, ros::Time::now(), ros::Duration(2.0));
-                listener.transformPoint(base_frame_tf, laser_point, vero_point);
+                listener.transformPoint(base_frame_tf, laser_point_msg, vero_point_msg);
 
-                //if(hp.selector(arr, filteredBisectrixCoeffs.data()) == 'L'){ // selection done using the bisector line orientation as reference
-                if(hp.selector(arr) == 'L'){ // selection done using the car orientation as reference
-                    x_left.push_back(vero_point.point.x);
-                    y_left.push_back(vero_point.point.y);
+                if(hp.is_left_point(laser_point_msg.point.x, laser_point_msg.point.y)){
+                    pp_left_points[left_points_size][0] = vero_point_msg.point.x;
+                    pp_left_points[left_points_size][1] = vero_point_msg.point.y;
+                    left_points_size += 1;
 
                 }
-                //else if (hp.selector(arr, filteredBisectrixCoeffs.data()) == 'R'){
-                else if (hp.selector(arr) == 'R'){
-                    x_right.push_back(vero_point.point.x);
-                    y_right.push_back(vero_point.point.y);
+
+                else if(hp.is_right_point(laser_point_msg.point.x, laser_point_msg.point.y)){
+                    pp_right_points[right_points_size][0] = vero_point_msg.point.x;
+                    pp_right_points[right_points_size][1] = vero_point_msg.point.y;
+                    right_points_size += 1;
 
                 }
             }
@@ -74,84 +85,71 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
         }
     }
 
-    /* Setting variables for the function ransac_2Dline */
-    float **dL;
-    dL = new float*[x_left.size()];
-    for(std::vector<float>::size_type i = 0; i < x_left.size(); ++i){
-        dL[i] = new float[2];
-        dL[i][0] = x_left[i];
-        dL[i][1] = y_left[i];
-    }
-    float **dR;
-    dR = new float*[x_right.size()];
-    for(std::vector<float>::size_type i = 0; i < x_right.size(); ++i){
-        dR[i] = new float[2];
-        dR[i][0] = x_right[i];
-        dR[i][1] = y_right[i];
-    }
-
-    /////////////////////// RANSAC ///////////////////////
-    float modelL[3], modelR[3];
-    int ret, inliersL, inliersR;
-    ret  = ransac_2Dline(dL, x_left.size(),  100, threshold, modelL, &inliersL, 0, verbose);
-    ret += ransac_2Dline(dR, x_right.size(), 100, threshold, modelR, &inliersR, 1, verbose);
-    //////////////////////////////////////////////////////
-
-    for(std::vector<float>::size_type i = 0; i < x_left.size(); ++i){
-        delete [] dL[i];
-    }
-    delete [] dL;
-    for(std::vector<float>::size_type i = 0; i < x_right.size(); ++i){
-        delete dR[i];
-    }
-    delete [] dR;
+    /* RANSAC */
+    float left_model[3], right_model[3];
+    int n_left_inliers = 0;
+    int n_right_inliers = 0; // number of inliers
+    int ret = -1;
+    ret  = ransac_2Dline(pp_left_points, left_points_size,  100, threshold, left_model, &n_left_inliers, 0, verbose);
+    ret += ransac_2Dline(pp_right_points, right_points_size, 100, threshold, right_model, &n_right_inliers, 1, verbose);
+    /* ------ */
 
     if(ret == 0){
         // The arguments of the function bisectrixLine are float vectors.
-        // Lets "cast" the array variable modelL/R to a float vector.
-        std::vector<float> left_line_coeffs(modelL,modelL+3), right_line_coeffs(modelR, modelR+3);
+        // Lets "cast" the array variable left/right_model to a float vector.
+        std::vector<float> left_line_coeffs(left_model,left_model+3);
+        std::vector<float> right_line_coeffs(right_model, right_model+3);
         std::vector<float> bisector_line_coeffs = utils::bisectrixLine(left_line_coeffs, right_line_coeffs); // Bisectrix coefficients
 
-        /////////////////////// KALMAN ///////////////////////
-        //std::vector<float> measurement = utils::fromThree2TwoCoeffs(bisector_line_coeffs);
-        //kalman.filter( Eigen::Map< Eigen::Vector2f >(measurement.data()) );
-        //Eigen::Vector4f state = kalman.getState();
-        //std::vector<float> sub_state(2);
-        //if(std::isnan(state[0])){
-            //kalman.resetState();
-            //state[0] = state[1] = state[2] = state[3] = 0.0;
-        //}
-        //sub_state[0] = state[0];
-        //sub_state[1] = state[2];
-        //filtered_bisector_line_coeffs = utils::fromTwo2ThreeCoeffs(sub_state);
-        //////////////////////////////////////////////////////
-
         // Publishing messages
-        ros::Time timestamp = ros::Time::now();
+
+        pcl::PointCloud<pcl::PointXYZ> points_ransac;
+        pcl::PointXYZ point;
+        for(int i = 0; i < n_left_inliers; ++i){
+          point.x = pp_left_points[i][0];
+          point.y = pp_left_points[i][1];
+          point.z = 0.0;
+          points_ransac.push_back(point);
+        }
+        for(int i = 0; i < n_right_inliers; ++i){
+          point.x = pp_right_points[i][0];
+          point.y = pp_right_points[i][1];
+          point.z = 0.0;
+          points_ransac.push_back(point);
+        }
+
+        sensor_msgs::PointCloud2 points_ransac_msg;
+        pcl::toROSMsg(points_ransac, points_ransac_msg);
+        points_ransac_msg.header.stamp = ros::Time::now();
+        points_ransac_msg.header.frame_id = base_frame_tf;
+        points_ransac_pub.publish(points_ransac_msg);
 
         pcl::PointCloud<pcl::PointXYZ> line;
-
-        //utils::addLineToPointcloud(filtered_bisector_line_coeffs, line);
         utils::addLineToPointcloud(bisector_line_coeffs, line);
         utils::addLineToPointcloud(left_line_coeffs, line);
         utils::addLineToPointcloud(right_line_coeffs, line);
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(line, line_msg);
-        line_msg.header.stamp = timestamp;
+        line_msg.header.stamp = ros::Time::now();
         line_msg.header.frame_id = base_frame_tf;
         lines_pcl_pub.publish(line_msg);
 
-        //ransac_corridor_control::LineCoeffs3 filtered_bisector_line_msg;
-        //filtered_bisector_line_msg.coeffs = filtered_bisector_line_coeffs;
-        //bisector_line_pub.publish(filtered_bisector_line_msg);
-
         ransac_corridor_control::LineCoeffs3 bisector_line_msg;
         bisector_line_msg.header.stamp = ros::Time::now();
-        bisector_line_coeffs[0] /= bisector_line_coeffs[1];
-        bisector_line_coeffs[1] /= bisector_line_coeffs[1];
         bisector_line_coeffs[2] /= bisector_line_coeffs[1];
+        bisector_line_coeffs[1] /= bisector_line_coeffs[1];
+
         bisector_line_msg.coeffs = bisector_line_coeffs;
         bisector_line_pub.publish(bisector_line_msg);
     }
+
+    for(unsigned int i = 0; i < maximum_size; ++i){
+        delete [] pp_left_points[i];
+    }
+    delete [] pp_left_points;
+    for(unsigned int i = 0; i < maximum_size; ++i){
+        delete pp_right_points[i];
+    }
+    delete [] pp_right_points;
 }

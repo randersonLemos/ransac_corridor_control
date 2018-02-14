@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <rosparam file="$(find ransac_corridor_control)/yaml/config.yaml" ns="ransac" />
-  <node pkg="ransac_corridor_control" type="bisector_node" name="bisector_node" output="screen" ns="ransac" />
-
-</launch>
-
-

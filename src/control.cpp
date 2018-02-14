@@ -49,6 +49,7 @@ void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisect
     dt = ros::Time::now().toSec();
 
     ransac_corridor_control::CarCommand cmd_vel_msg;
+    cmd_vel_msg.header.stamp = ros::Time::now();
     cmd_vel_msg.speedLeft  = linear_vel;
     cmd_vel_msg.speedRight = linear_vel;
     cmd_vel_msg.steerAngle = rudder;

@@ -9,73 +9,38 @@ int main(int argc,char **argv){
     /* Parameters for the Laser class from where ransac is executed*/
     double threshold,
            win_width,
-           win_length,
-           model_variance_11,
-           model_variance_22,
-           measure_variance_11,
-           measure_variance_22;
-    if(!nh.getParam("/ransac/laser/threshold", threshold)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/laser/threshold'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/laser/window_width", win_width)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/laser/window_width'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/laser/window_length", win_length)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/laser/window_length'"); exit(0);
-    }
-    /* Parameters for the Kalman class which is executed inside Laser class*/
-    if(!nh.getParam("/ransac/kalman/model_variance_11", model_variance_11)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/model_variance_11'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/kalman/model_variance_22", model_variance_22)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/model_variance_22'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/kalman/measure_variance_11", measure_variance_11)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance_11'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/kalman/measure_variance_22", measure_variance_22)){
-        ROS_ERROR_STREAM("failed to get param '/ransac/kalman/measure_variance_22'"); exit(0);
-    }
-
+           win_length;
+    n.getParam("laser/threshold", threshold);
+    n.getParam("laser/window_width", win_width);
+    n.getParam("laser/window_length", win_length);
     bool verbose;
-    if(!nh.getParam("/ransac/laser/verbose",verbose)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/laser/verbose'"); exit(0);
-    }
+    nh.getParam("laser/verbose",verbose);
     /* Parameters for topic names*/
-    std::string  lines_pcl_topic
-                ,bisector_coeffs_topic
+    std::string  line_pcl_topic
+                ,line_coeffs_topic
+                ,points_ransac_topic
                 ,laser_scan_topic;
-    if(!nh.getParam("/ransac/topics/lines_pcl", lines_pcl_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/lines_pcl'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/topics/bisector_coeffs", bisector_coeffs_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/bisector_coeffs'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/topics/laser_scan", laser_scan_topic)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/topics/laser_scan'"); exit(0);
-    }
+    n.getParam("topics/line_pcl", line_pcl_topic);
+    n.getParam("topics/line_coeffs", line_coeffs_topic);
+    n.getParam("topics/laser_scan", laser_scan_topic);
+    n.getParam("topics/points_ransac", points_ransac_topic);
     /* Parameters for tfs names*/
     std::string base_link,
                 laser_link;
-    if(!nh.getParam("/ransac/tfs/base_link", base_link)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/tfs/base_link'"); exit(0);
-    }
-    if(!nh.getParam("/ransac/tfs/laser_link", laser_link)){
-        ROS_ERROR_STREAM("Failed to get param '/ransac/tfs/laser_link'"); exit(0);
-    }
+    n.getParam("tfs/base_link", base_link);
+    n.getParam("tfs/laser_link", laser_link);
+    /* ------------------ */
 
-    ros::Publisher bisector_coeffs_pub = n.advertise<ransac_corridor_control::LineCoeffs3>(bisector_coeffs_topic, 1);
-    ros::Publisher lines_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(lines_pcl_topic, 1);
+    ros::Publisher line_coeffs_pub = n.advertise<ransac_corridor_control::LineCoeffs3>(line_coeffs_topic, 1);
+    ros::Publisher line_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(line_pcl_topic, 1);
+    ros::Publisher points_ransac_pub = n.advertise<sensor_msgs::PointCloud2>(points_ransac_topic, 1);
 
-    Laser *ls = Laser::unique_instance( bisector_coeffs_pub
-                                       ,lines_pcl_pub
+    Laser *ls = Laser::unique_instance( line_coeffs_pub
+                                       ,line_pcl_pub
+                                       ,points_ransac_pub
                                        ,threshold
                                        ,win_width
                                        ,win_length
-                                       //,model_variance_11
-                                       //,model_variance_22
-                                       //,measure_variance_11
-                                       //,measure_variance_22
                                        ,verbose
                                        ,base_link
                                        ,laser_link
