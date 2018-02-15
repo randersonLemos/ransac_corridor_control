@@ -22,8 +22,8 @@ kalman:
   # Elements of the measurement covariance matrix R
   r00: 50.0
   r11: 75.0
-  r22: 10.0
-  r33: 25.0
+  r22: 10000.0
+  r33: 10000.0
 topics:
   line_pcl: "bisector_pcl"
   filtered_line_pcl: "filtered_bisector_pcl"
