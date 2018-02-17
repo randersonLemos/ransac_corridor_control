@@ -6,13 +6,12 @@ int main(int argc, char **argv){
 
     /* LOADING PARAMETERS */
     /* Parameters for the class Control, from where the control code is executed */
-    double kpt, kit, krt, kvt, ramp_time, max_lin_vel, wait_time;
+    double kpt, kit, krt, kvt, lin_vel, wait_time;
     n.getParam("control/kpt", kpt);
     n.getParam("control/kit", kit);
     n.getParam("control/krt", krt);
     n.getParam("control/kvt", kvt);
-    n.getParam("control/ramp_time", ramp_time);
-    n.getParam("control/max_lin_vel", max_lin_vel);
+    n.getParam("control/lin_vel", lin_vel);
     n.getParam("control/wait_time", wait_time);
     /* Parameters for topic names*/
     std::string filtered_line_coeffs_topic,
@@ -28,8 +27,7 @@ int main(int argc, char **argv){
                                            ,kit
                                            ,krt
                                            ,kvt
-                                           ,ramp_time
-                                           ,max_lin_vel
+                                           ,lin_vel
                                            ,cmd_vel_pub
                                           );
 

@@ -13,8 +13,7 @@ Control* Control::unique_instance( const float &_kpt
                                   ,const float &_kit
                                   ,const float &_krt
                                   ,const float &_kvt
-                                  ,const float &_ramp_time
-                                  ,const float &_max_lin_vel
+                                  ,const float &_linear_vel
                                   ,const ros::Publisher &_cmd_vel_pub
                                  ){
    if(instance == 0){
@@ -22,8 +21,7 @@ Control* Control::unique_instance( const float &_kpt
                               ,_kit
                               ,_krt
                               ,_kvt
-                              ,_ramp_time
-                              ,_max_lin_vel
+                              ,_linear_vel
                               ,_cmd_vel_pub
                              );
    }
@@ -37,9 +35,9 @@ void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3Stamped 
     points[2] = -(bisector_line_msg.coeffs[2] + bisector_line_msg.coeffs[0]*points[0])/bisector_line_msg.coeffs[1];
     points[3] = -(bisector_line_msg.coeffs[2] + bisector_line_msg.coeffs[0]*points[1])/bisector_line_msg.coeffs[1];
 
-    if(linear_vel < max_lin_vel){ // gradually increasing speed
-        linear_vel = max_lin_vel* (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
-    }
+    //if(linear_vel < max_lin_vel){ // gradually increasing speed
+        //linear_vel = max_lin_vel* (ros::Time::now() - start_time).toSec() / ramp_time.toSec();
+    //}
 
     /////////////////////// CONTROL ///////////////////////
     double rudder;

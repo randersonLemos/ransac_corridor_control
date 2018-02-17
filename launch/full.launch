@@ -3,4 +3,5 @@
   <node pkg="ransac_corridor_control" type="bisector_node" name="bisector" output="screen"/>
   <node pkg="ransac_corridor_control" type="control_node" name="control" output="screen"/>
   <node pkg="ransac_corridor_control" type="filter_node.py" name="filter" output="screen"/>
+  <node pkg="ransac_corridor_control" type="to_twist_node" name="to_twist" output="screen"/>
 </launch>

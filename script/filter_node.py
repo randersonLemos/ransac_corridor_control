@@ -139,7 +139,7 @@ if __name__ == '__main__':
     car_sub = message_filters.Subscriber(cmd_vel_topic, CarCommand)
     # car_sub = message_filters.Subscriber('/mkz/twist', TwistStamped)
 
-    ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 5, 0.150)
+    ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 1, 0.150)
     ts.registerCallback(filterr.callback)
 
     rospy.spin()

@@ -9,8 +9,7 @@ control:
   kit: 0.001
   kvt: 0.50
   krt: 0.20
-  ramp_time: 2.0
-  max_lin_vel: 1.5
+  lin_vel: 1.5
   wait_time: 5.0
 kalman:
   verbose: false
@@ -33,6 +32,7 @@ topics:
   points_ransac: "points_ransac"
   laser_scan: "scan"
   cmd_vel: "car_command"
+  cmd_vel_twist: "twist"
 tfs:
   base_link: "base_link"
   laser_link: "scan_link"

@@ -70,6 +70,7 @@ add_library(${PROJECT_NAME}
   src/utils.cpp
   src/laser.cpp
   src/control.cpp
+  src/converter.cpp
   src/control_piv.cpp
   src/handle_points.cpp
   src/ransac_2D_line.cpp
@@ -82,11 +83,13 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a cpp executable
 add_executable(bisector_node src/bisector_node.cpp)
 add_executable(control_node src/control_node.cpp)
+add_executable(to_twist_node src/to_twist_node.cpp)
 
 ## Add dependencies to the executable
 add_dependencies(${PROJECT_NAME} ransac_corridor_control_gencpp)
 add_dependencies(bisector_node ransac_corridor_control_gencpp ${PROJECT_NAME})
 add_dependencies(control_node ransac_corridor_control_gencpp ${PROJECT_NAME})
+add_dependencies(to_twist_node ransac_corridor_control_gencpp ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(bisector_node
@@ -95,6 +98,11 @@ target_link_libraries(bisector_node
 )
 
 target_link_libraries(control_node
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+target_link_libraries(to_twist_node
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )

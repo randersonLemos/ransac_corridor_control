@@ -16,25 +16,23 @@ private:
     ros::Time start_time;
 
     /* parameters defined by the user */
-    double kpt, kit, krt, kvt, max_lin_vel;
-    ros::Duration ramp_time;
+    double kpt, kit, krt, kvt;
 protected:
     Control( const float &_kpt
             ,const float &_kit
             ,const float &_krt
             ,const float &_kvt
-            ,const float &_ramp_time
-            ,const float &_max_lin_vel
+            ,const float &_linear_vel
             ,const ros::Publisher &_cmd_vel_pub
            ):
              kpt(_kpt)
             ,kit(_kit)
             ,krt(_krt)
             ,kvt(_kvt)
-            ,ramp_time(_ramp_time)
-            ,max_lin_vel(_max_lin_vel)
+            ,linear_vel(_linear_vel)
             ,cmd_vel_pub(_cmd_vel_pub)
     {
+    angular_vel = 0.0;
     bool print = true;
     while(!ros::Time::now().toSec()){
        if(print){
@@ -43,8 +41,6 @@ protected:
        }
     }
     ROS_INFO("Control node --> time received");
-    linear_vel = 0.0;
-    angular_vel = 0.0;
     start_time = ros::Time::now();
     dt = start_time.toSec();
     }
@@ -58,8 +54,7 @@ public:
                                     ,const float &_kit
                                     ,const float &_krt
                                     ,const float &_kvt
-                                    ,const float &_ramp_time
-                                    ,const float &_max_lin_vel
+                                    ,const float &_linear_vel
                                     ,const ros::Publisher &_cmd_vel_pub
                                    );
 
