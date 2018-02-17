@@ -30,7 +30,7 @@ Control* Control::unique_instance( const float &_kpt
    return instance;
 }
 
-void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisector_line_msg){
+void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3Stamped &bisector_line_msg){
     std::vector<double> points(4);
     points[0] = -15;
     points[1] = 15;
@@ -48,7 +48,7 @@ void Control::ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisect
 
     dt = ros::Time::now().toSec();
 
-    ransac_corridor_control::CarCommand cmd_vel_msg;
+    ransac_corridor_control::CarCommandStamped cmd_vel_msg;
     cmd_vel_msg.header.stamp = ros::Time::now();
     cmd_vel_msg.speedLeft  = linear_vel;
     cmd_vel_msg.speedRight = linear_vel;

@@ -12,7 +12,7 @@
 #include "utils.hpp"
 #include "ransac_2D_line.hpp"
 #include "handle_points.hpp"
-#include "ransac_corridor_control/LineCoeffs3.h"
+#include "ransac_corridor_control/LineCoeffs3Stamped.h"
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>

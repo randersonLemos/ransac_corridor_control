@@ -4,8 +4,8 @@
 #include <ros/ros.h>
 
 #include "control_piv.hpp"
-#include "ransac_corridor_control/CarCommand.h"
-#include "ransac_corridor_control/LineCoeffs3.h"
+#include "ransac_corridor_control/CarCommandStamped.h"
+#include "ransac_corridor_control/LineCoeffs3Stamped.h"
 
 
 class Control{
@@ -63,6 +63,6 @@ public:
                                     ,const ros::Publisher &_cmd_vel_pub
                                    );
 
-    void ransac_callback(const ransac_corridor_control::LineCoeffs3 &bisector_line_msg);
+    void ransac_callback(const ransac_corridor_control::LineCoeffs3Stamped &bisector_line_msg);
 };
 #endif /* RANSAC_CONTROL_H */

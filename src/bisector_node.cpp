@@ -31,7 +31,7 @@ int main(int argc,char **argv){
     n.getParam("tfs/laser_link", laser_link);
     /* ------------------ */
 
-    ros::Publisher line_coeffs_pub = n.advertise<ransac_corridor_control::LineCoeffs3>(line_coeffs_topic, 1);
+    ros::Publisher line_coeffs_pub = n.advertise<ransac_corridor_control::LineCoeffs3Stamped>(line_coeffs_topic, 1);
     ros::Publisher line_pcl_pub = n.advertise<sensor_msgs::PointCloud2>(line_pcl_topic, 1);
     ros::Publisher points_ransac_pub = n.advertise<sensor_msgs::PointCloud2>(points_ransac_topic, 1);
 

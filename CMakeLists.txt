@@ -20,9 +20,8 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs nav_msgs roscpp sensor_msg
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  LineCoeffs2.msg
-  LineCoeffs3.msg
-  CarCommand.msg
+  LineCoeffs3Stamped.msg
+  CarCommandStamped.msg
 )
 
 ## Generate services in the 'srv' folder

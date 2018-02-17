@@ -142,18 +142,4 @@ if __name__ == '__main__':
     ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 5, 0.150)
     ts.registerCallback(filterr.callback)
 
-    start_time = rospy.Time.now()
-    duration = rospy.Duration(5.0)
-    # while not filterr.was_called():
-    while rospy.Time.now() - start_time < duration:
-        car_command_pub = rospy.Publisher(cmd_vel_topic, CarCommand, queue_size=5)
-        header = Header()
-        header.stamp = rospy.Time.now()
-        car_command_msg = CarCommand()
-        car_command_msg.header = header
-        car_command_msg.speedLeft = 0.0
-        car_command_msg.speedRight = 0.0
-        car_command_msg.steerAngle = 0.0
-        car_command_pub.publish(car_command_msg)
-
     rospy.spin()
