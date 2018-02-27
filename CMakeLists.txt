@@ -22,6 +22,7 @@ add_message_files(
   FILES
   LineCoeffs3Stamped.msg
   CarCommandStamped.msg
+  StateFilterStamped.msg
 )
 
 ## Generate services in the 'srv' folder

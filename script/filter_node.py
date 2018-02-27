@@ -5,18 +5,20 @@ import utils
 import message_filters
 import sensor_msgs.point_cloud2 as pcl2
 from kalman import EKF
-from ransac_corridor_control.msg import LineCoeffs3
-from ransac_corridor_control.msg import CarCommand
+from ransac_corridor_control.msg import LineCoeffs3Stamped
+from ransac_corridor_control.msg import CarCommandStamped
+from ransac_corridor_control.msg import StateFilterStamped
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Header
 from geometry_msgs.msg import TwistStamped
 
 class Filterr(object):
-    def __init__(self, l, ekf, base_link, curr_time, filtered_coeffs_pub, filtered_points_pub):
+    def __init__(self, l, ekf, base_link, curr_time, filtered_coeffs_pub, filtered_points_pub, state_filter_pub):
         self.l = l
         self.ekf = ekf
         self.fcp = filtered_coeffs_pub
         self.fpp = filtered_points_pub
+        self.sfp = state_filter_pub
         self.base_link = base_link
         self.curr_time = curr_time # a function
         self.z = numpy.matrix([[0.0], [0.0], [0.0], [0.0]])
@@ -55,7 +57,7 @@ class Filterr(object):
         be,b,om,al,v,a = utils.split_state(self.ekf.get_state())
         aa = numpy.tan(be)
 
-        line_coeffs3 = LineCoeffs3()
+        line_coeffs3 = LineCoeffs3Stamped()
         line_coeffs3.header.stamp = self.curr_time()
         line_coeffs3.coeffs = utils.two_to_three_coeffs((aa,b))
 
@@ -64,8 +66,13 @@ class Filterr(object):
         header.frame_id = self.base_link
         points_coeffs3_pcl = pcl2.create_cloud_xyz32(header, utils.points_from_coeffs2((aa,b),30,0.5))
 
+        state_filter = StateFilterStamped()
+        state_filter.header = header
+        state_filter.states = (be,b,om,al,v,a)
+
         self.fcp.publish(line_coeffs3)
         self.fpp.publish(points_coeffs3_pcl)
+        self.sfp.publish(state_filter)
 
     def was_called(self):
         return self.called
@@ -79,6 +86,7 @@ if __name__ == '__main__':
     line_coeffs_topic = rospy.get_param('topics/line_coeffs')
     filtered_line_coeffs_topic = rospy.get_param('topics/filtered_line_coeffs')
     filtered_line_pcl_topic = rospy.get_param('topics/filtered_line_pcl')
+    state_filter_topic = rospy.get_param('topics/state_filter')
 
     base_link = rospy.get_param('tfs/base_link')
 
@@ -130,13 +138,15 @@ if __name__ == '__main__':
 
     ekf = EKF(l,x,P,Q,R,verbose)
 
-    filtered_coeffs_pub = rospy.Publisher(filtered_line_coeffs_topic, LineCoeffs3, queue_size=5)
-    filtered_points_pub = rospy.Publisher(filtered_line_pcl_topic, PointCloud2, queue_size=5)
+    filtered_coeffs_pub = rospy.Publisher(filtered_line_coeffs_topic, LineCoeffs3Stamped, queue_size=1)
+    filtered_points_pub = rospy.Publisher(filtered_line_pcl_topic, PointCloud2, queue_size=1)
 
-    filterr = Filterr(l,ekf,base_link,rospy.Time.now,filtered_coeffs_pub,filtered_points_pub)
+    state_filter_pub = rospy.Publisher(state_filter_topic, StateFilterStamped, queue_size=1)
 
-    line_sub = message_filters.Subscriber(line_coeffs_topic, LineCoeffs3)
-    car_sub = message_filters.Subscriber(cmd_vel_topic, CarCommand)
+    filterr = Filterr(l,ekf,base_link,rospy.Time.now,filtered_coeffs_pub,filtered_points_pub, state_filter_pub)
+
+    line_sub = message_filters.Subscriber(line_coeffs_topic, LineCoeffs3Stamped)
+    car_sub = message_filters.Subscriber(cmd_vel_topic, CarCommandStamped)
     # car_sub = message_filters.Subscriber('/mkz/twist', TwistStamped)
 
     ts = message_filters.ApproximateTimeSynchronizer([line_sub, car_sub], 1, 0.150)
