@@ -43,7 +43,7 @@ class Filterr(object):
         # om = car_data.twist.angular.z
         # v = car_data.twist.linear.x
 
-        if not (numpy.isnan(a) or numpy.isnan(b)):
+        if not (numpy.isnan(aa) or numpy.isnan(b)):
             self.z[0,0] = be
             self.z[1,0] = b
             self.z[2,0] = om

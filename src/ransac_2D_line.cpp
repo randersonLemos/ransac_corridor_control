@@ -33,6 +33,15 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
         if(conSet[i] == NULL) { perror("out of memory\n"); exit(0); }
     }
 
+    float **bestconSet = (float **) malloc(n * sizeof(float *));
+    if(bestconSet == NULL) { perror("out of memory\n"); exit(0); }
+
+    for(i = 0; i < n; i++)
+    {
+        bestconSet[i] = (float *) malloc(2 * sizeof(float));
+        if(bestconSet[i] == NULL) { perror("out of memory\n"); exit(0); }
+    }
+
     float randModel[3];
     float point[2];
     float bestScore = 0.0;
@@ -114,6 +123,11 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
             *bestInliers = inliers;
             bestScore = score;
 
+            for(i = 0; i < *bestInliers; ++i){
+              bestconSet[i][0] = conSet[i][0];
+              bestconSet[i][1] = conSet[i][1];
+            }
+
             if(verbose)
             printf(" reestimated model: %.3f*x + %.3f*y + %.3f = 0\n",
                     bestModel[0], bestModel[1], bestModel[2]);
@@ -124,8 +138,8 @@ int ransac_2Dline(float **data, int n, int maxT, float threshold,
 
 
     for(i = 0; i < *bestInliers; ++i){
-       data[i][0] = conSet[i][0];
-       data[i][1] = conSet[i][1];
+       data[i][0] = bestconSet[i][0];
+       data[i][1] = bestconSet[i][1];
     }
 
     for(i = 0; nr < 2; i++){
