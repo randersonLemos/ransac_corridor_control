@@ -3,7 +3,7 @@ ROS package `ransac_corridor_control` repository. This package aims to solve the
 
 * `ransac_corridor_control` package in action!
 
-![Alt Text](https://i.imgur.com/4qw2HgZ.gif)
+![Alt Text](https://i.imgur.com/vXl15sO.gif)
 
 ## Installation
 Just clone the repository into a ROS workspace and compile it with `catkin_make`.
