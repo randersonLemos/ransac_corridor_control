@@ -25,6 +25,8 @@ private:
 
     float threshold;
 
+    int iterations;
+
     bool verbose;
 
     std::string base_frame_tf, laser_frame_tf;
@@ -41,6 +43,7 @@ protected:
            ,const ros::Publisher &_lines_pcl_pub
            ,const ros::Publisher &_points_ransac_pub
            ,const float _threshold
+           ,const int _iterations
            ,const float _winWidth
            ,const float _winLength
            ,const bool _verbose
@@ -51,6 +54,7 @@ protected:
            ,lines_pcl_pub(_lines_pcl_pub)
            ,points_ransac_pub(_points_ransac_pub)
            ,threshold(_threshold)
+           ,iterations(_iterations)
            ,verbose(_verbose)
            ,base_frame_tf(_base_frame_tf)
            ,laser_frame_tf(_laser_frame_tf)
@@ -65,6 +69,7 @@ public:
                                   ,const ros::Publisher &_lines_pcl_pub
                                   ,const ros::Publisher &_points_ransac_pub
                                   ,const float _threshold
+                                  ,const int _iterations
                                   ,const float _winWidth
                                   ,const float _winLength
                                   ,const bool _verbose

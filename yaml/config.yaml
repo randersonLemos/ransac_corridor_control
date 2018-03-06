@@ -4,6 +4,7 @@ laser:
   window_width: 35.0
   window_length: 60.0
   threshold: 2.5
+  iterations: 100
 control:
   kpt: 0.1
   kit: 0.001
@@ -33,8 +34,8 @@ topics:
   points_ransac: "points_ransac"
   laser_scan: "scan"
   cmd_vel: "car_command"
-  cmd_vel_twist: "/mkz/cmd_vel"
+  cmd_vel_twist: "cmd_vel"
 tfs:
-  base_link: "mkz/base_link"
-  laser_link: "mkz/hokuyo_link"
+  base_link: "base_link"
+  laser_link: "hokuyo_link"
 

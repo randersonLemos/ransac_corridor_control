@@ -6,6 +6,7 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                               ,const ros::Publisher &_lines_pcl_pub
                               ,const ros::Publisher &_points_ransac_pub
                               ,const float _threshold
+                              ,const int _iterations
                               ,const float _winWidth
                               ,const float _winLength
                               ,const bool _verbose
@@ -17,6 +18,7 @@ Laser* Laser::unique_instance( const ros::Publisher &_bisector_line_pub
                              ,_lines_pcl_pub
                              ,_points_ransac_pub
                              ,_threshold
+                             ,_iterations
                              ,_winWidth
                              ,_winLength
                              ,_verbose
@@ -90,8 +92,8 @@ void Laser::laser_callback(const sensor_msgs::LaserScan& msg){
     int n_left_inliers = 0;
     int n_right_inliers = 0; // number of inliers
     int ret = -1;
-    ret  = ransac_2Dline(pp_left_points, left_points_size,  100, threshold, left_model, &n_left_inliers, 0, verbose);
-    ret += ransac_2Dline(pp_right_points, right_points_size, 100, threshold, right_model, &n_right_inliers, 1, verbose);
+    ret  = ransac_2Dline(pp_left_points, left_points_size, iterations, threshold, left_model, &n_left_inliers, 0, verbose);
+    ret += ransac_2Dline(pp_right_points, right_points_size, iterations, threshold, right_model, &n_right_inliers, 1, verbose);
     /* ------ */
 
     if(ret == 0){

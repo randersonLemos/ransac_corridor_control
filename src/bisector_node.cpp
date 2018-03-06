@@ -3,18 +3,19 @@
 int main(int argc,char **argv){
     ros::init(argc, argv, "bisector_line");
     ros::NodeHandle n;
-    ros::NodeHandle nh("~");
 
     /* LOADING PARAMETERS */
     /* Parameters for the Laser class from where ransac is executed*/
     double threshold,
            win_width,
            win_length;
+    int iterations;
     n.getParam("laser/threshold", threshold);
+    n.getParam("laser/iterations", iterations);
     n.getParam("laser/window_width", win_width);
     n.getParam("laser/window_length", win_length);
     bool verbose;
-    nh.getParam("laser/verbose",verbose);
+    n.getParam("laser/verbose",verbose);
     /* Parameters for topic names*/
     std::string  line_pcl_topic
                 ,line_coeffs_topic
@@ -39,6 +40,7 @@ int main(int argc,char **argv){
                                        ,line_pcl_pub
                                        ,points_ransac_pub
                                        ,threshold
+                                       ,iterations
                                        ,win_width
                                        ,win_length
                                        ,verbose
